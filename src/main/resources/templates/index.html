@@ -2,47 +2,177 @@
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content="Simulado Online" />
-    <meta name="author" content="Seu Nome" />
     <title>Simulado Online</title>
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" th:href="@{/assets/img/favicon.ico}" />
-    <!-- Core theme CSS (includes Bootstrap) -->
+    <!-- CSS principal (inclui Bootstrap) -->
     <link th:href="@{/css/styles.css}" rel="stylesheet" />
 </head>
 <body>
-<!-- Navigation -->
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
-    <div class="container px-4 px-lg-5">
+
+<!-- NAVBAR (logo à esquerda + botões à direita) -->
+<nav class="navbar navbar-dark bg-dark">
+    <div class="container d-flex justify-content-between align-items-center">
         <a class="navbar-brand" th:href="@{/}">
-            <img th:src="@{/assets/img/logo.png}" alt="Simulado Online" style="height:40px;">
+
         </a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive"
-                aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
+
+        <div class="d-flex gap-2">
+            <!-- Botão LOGIN (abre offcanvas Login) -->
+            <button class="btn btn-outline-light btn-sm" type="button"
+                    data-bs-toggle="offcanvas" data-bs-target="#offcanvasRight"
+                    aria-controls="offcanvasRight">
+                Login do professor
+            </button>
+
+            <!-- Botão SOBRE (abre offcanvas About) -->
+            <button class="btn btn-outline-light btn-sm" type="button"
+                    data-bs-toggle="offcanvas" data-bs-target="#offcanvasAbout"
+                    aria-controls="offcanvasAbout">
+                Sobre
+            </button>
+        </div>
     </div>
 </nav>
 
-<!-- Page Content -->
-<section class="vh-100 d-flex align-items-center" style="background-color: #f8f9fa;">
-    <div class="container px-4 px-lg-5 text-center">
-        <div class="row gx-4 gx-lg-5 justify-content-center">
-            <div class="col-lg-8">
-                <h1 class="mt-5 mb-4">Bem-vindo ao Simulado Online</h1>
-                <p class="lead mb-5">
-                    Treine seus conhecimentos e aumente suas chances no concurso.
-                </p>
-                <a th:href="@{/configurar}" class="btn btn-primary btn-lg px-4 me-3">Fazer um Simulado</a>
+<!-- OFFCANVAS: Login do Professor -->
+<div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasRight" aria-labelledby="offcanvasRightLabel">
+    <div class="offcanvas-header">
+        <h5 id="offcanvasRightLabel" class="mb-0">Entrar como Professor</h5>
+        <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Fechar"></button>
+    </div>
+    <div class="offcanvas-body">
+        <p class="text-muted">Informe suas credenciais para acessar o painel.</p>
+
+        <form method="post" th:action="@{/prof/login}" class="vstack gap-3" id="formLoginProf">
+            <!-- (se usar CSRF do Spring Security, incluir token aqui) -->
+            <div>
+                <label class="form-label">E-mail</label>
+                <input class="form-control" type="email" name="email" id="loginEmail" required placeholder="admin@exemplo.com">
             </div>
+            <div>
+                <label class="form-label">Senha</label>
+                <input class="form-control" type="password" name="senha" required placeholder="••••••••">
+            </div>
+            <button class="btn btn-primary" type="submit">Entrar</button>
+        </form>
+
+        <hr class="my-4">
+
+        <small class="text-muted">
+            Esqueceu a senha? Fale com
+            <a href="mailto:suporte@seudominio.com">suporte@seudominio.com</a>.
+        </small>
+    </div>
+</div>
+
+<!-- OFFCANVAS: Sobre -->
+<div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasAbout" aria-labelledby="offcanvasAboutLabel">
+    <div class="offcanvas-header">
+        <h5 id="offcanvasAboutLabel" class="mb-0">Sobre</h5>
+        <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Fechar"></button>
+    </div>
+    <div class="offcanvas-body">
+        <div class="text-center mb-2">
+            <img th:src="@{/assets/img/logo.png}" alt="Logo" style="height:120px;"><br><br><br>
+        </div>
+        <p><strong>Simulado Online</strong> — plataforma para treinar conhecimentos e aumentar as chances no concurso.</p><br>
+        <p class="mb-2"><strong>Autor:</strong> Raphael Pires</p>
+        <div class="vstack gap-2">
+            <a class="btn btn-primary" href="https://www.linkedin.com/in/raphaellpires"
+               target="_blank" rel="noopener noreferrer">LinkedIn</a>
+            <a class="btn btn-primary" href="https://github.com/phaeljf"
+               target="_blank" rel="noopener noreferrer">GitHub</a>
         </div>
     </div>
-</section>
+</div>
 
-<!-- Bootstrap core JS -->
+<!-- CONTEÚDO -->
+<main>
+    <!-- HERO (logo grande + título MENOR + sem botão aqui) -->
+    <section class="hero">
+        <img th:src="@{/assets/img/logo.png}" alt="Logo Simulado" class="hero-logo">
+        <h1>Bem-vindo ao Simulado Online</h1>
+        <p class="lead">Treine seus conhecimentos e aumente suas chances no concurso.</p>
+    </section>
+
+    <!-- SEÇÃO principal com dois cards (container mais estreito) -->
+    <section class="home-container">
+        <div class="row g-3">
+            <!-- ESQ: Simulado do zero (botão padrão “Fazer um Simulado”) -->
+            <div class="col-12 col-lg-6">
+                <div class="card h-100 p-3">
+                    <h2 class="h5">Fazer um simulado do zero</h2>
+                    <p class="text-muted mb-3">
+                        Configure seu próprio simulado escolhendo as áreas de conhecimento e a quantidade de questões.
+                    </p>
+                    <!-- 6) Aqui fica o botão Fazer um Simulado -->
+                    <a class="btn btn-primary" th:href="@{/configurar}">Fazer um Simulado</a>
+                </div>
+            </div>
+
+            <!-- DIR: Pesquisar simulados prontos -->
+            <div class="col-12 col-lg-6">
+                <div class="card h-100 p-3">
+                    <h2 class="h5">Simulados já programados</h2>
+                    <p class="text-muted">Pesquise provas públicas cadastradas por professores.</p>
+
+                    <!-- 7) Busca + resultado com botão “Fazer este simulado” -->
+                    <input class="form-control mb-2" type="search" id="buscaProva" placeholder="Digite para pesquisar…">
+                    <div id="resultadoBusca" class="small"></div>
+
+                    <!-- Mostra quando um item for “selecionado” -->
+                    <div id="cardProvaSelecionada" class="mt-3 d-none">
+                        <div class="border p-3">
+                            <strong id="tituloProva">Título da prova</strong>
+                            <div class="mt-2 d-flex gap-2">
+                                <a id="btnFazerProva" class="btn btn-primary" href="#">Fazer este simulado</a>
+                                <a class="btn btn-outline-primary" th:href="@{/provas}">Pesquisa avançada</a>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<footer class="home-container py-4">
+    <small class="text-muted">© Simulado Online</small>
+</footer>
+
+<!-- Bootstrap bundle (necessário para offcanvas) -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
-<!-- Core theme JS -->
+
+<!-- UX: foco no e-mail ao abrir o offcanvas de login + demo da busca -->
+<script>
+    document.getElementById('offcanvasRight')
+        ?.addEventListener('shown.bs.offcanvas', function () {
+            document.getElementById('loginEmail')?.focus();
+        });
+
+    // Demo simples da busca (troque depois por fetch /provas/search)
+    const input = document.getElementById('buscaProva');
+    const card = document.getElementById('cardProvaSelecionada');
+    const titulo = document.getElementById('tituloProva');
+    const btn = document.getElementById('btnFazerProva');
+
+    input?.addEventListener('input', () => {
+        const termo = input.value.trim();
+        if (termo.length >= 3) {
+            titulo.textContent = 'Prova: ' + termo;
+            btn.href = '/p/' + encodeURIComponent(termo.toLowerCase().replace(/\s+/g, '-'));
+            card.classList.remove('d-none');
+        } else {
+            card.classList.add('d-none');
+        }
+    });
+</script>
+
+<!-- Seu JS (mantido) -->
 <script th:src="@{/js/scripts.js}"></script>
 </body>
 </html>

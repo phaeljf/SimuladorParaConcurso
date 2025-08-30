@@ -15,7 +15,7 @@ public class Questao {
     @JoinColumn(name = "area_id")
     private AreaConhecimento areaConhecimento;
 
-    @Column(name = "enunciado", nullable = false, columnDefinition = "text")
+    @Column(nullable = false, columnDefinition = "text")
     private String enunciado;
 
     @Column(name = "alternativa_a", nullable = false)
@@ -29,6 +29,9 @@ public class Questao {
 
     @Column(name = "alternativa_d", nullable = false)
     private String alternativaD;
+
+    @Column(name = "alternativa_e") // novo
+    private String alternativaE;
 
     @Column(name = "correta", nullable = false, length = 1)
     private char correta;
@@ -51,4 +54,14 @@ public class Questao {
         if (alternativaD != null)   alternativaD = alternativaD.trim();
         this.correta = Character.toUpperCase(this.correta);
     }
+
+    // ...
+    @Column(nullable = false)
+    private Boolean publica = Boolean.TRUE;
+
+    @Column(name = "autor_id")
+    private Long autorId;
+
+
+
 }

@@ -5,7 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <title>Simulado • Resultado</title>
 
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" th:href="@{/css/styles.css}"/>
+
 
     <style>
         :root{
@@ -58,33 +60,39 @@
             <img class="brand-logo me-2" th:src="@{/assets/img/logo.png}" alt="Simulado Online">
             <span>Simulado Online</span>
         </a>
-        <div class="text-white-50 small">
-            <span>Participante: </span><strong th:text="${nome}">Nome</strong>
-        </div>
     </div>
 </nav>
 
 <main class="container py-4">
-    <div class="row g-3">
-        <!-- Métricas -->
-        <div class="col-12 col-md-4">
-            <div class="card card-glass metric-card metric-ok">
+
+    <!-- Metricas -->
+    <div class="row g-3 align-items-stretch">  <!-- ADICIONE align-items-stretch -->
+        <div class="fs-3 text-dark">
+            <span>Participante: </span>
+            <strong class="fs-4 fw-bold" th:text="${nome}">Nome</strong>
+        </div>
+        <div class="col-12 col-md-4 d-flex">     <!-- ADICIONE d-flex -->
+            <div class="card card-glass metric-card metric-ok h-100 w-100"> <!-- ADICIONE h-100 w-100 -->
                 <div class="card-body">
                     <div class="text-muted small">Acertos</div>
                     <div class="display-6 fw-bold" th:text="${acertos}">0</div>
+                    <div class="text-muted small invisible">placeholder</div> <!-- opcional, ver #2 -->
                 </div>
             </div>
         </div>
-        <div class="col-12 col-md-4">
-            <div class="card card-glass metric-card metric-bad">
+
+        <div class="col-12 col-md-4 d-flex">
+            <div class="card card-glass metric-card metric-bad h-100 w-100">
                 <div class="card-body">
                     <div class="text-muted small">Erros</div>
                     <div class="display-6 fw-bold" th:text="${erros}">0</div>
+                    <div class="text-muted small invisible">placeholder</div> <!-- opcional -->
                 </div>
             </div>
         </div>
-        <div class="col-12 col-md-4">
-            <div class="card card-glass metric-card">
+
+        <div class="col-12 col-md-4 d-flex">
+            <div class="card card-glass metric-card h-100 w-100">
                 <div class="card-body">
                     <div class="text-muted small">Aproveitamento</div>
                     <div class="display-6 fw-bold"
@@ -95,6 +103,7 @@
         </div>
     </div>
 
+
     <!-- Gabarito -->
     <div class="row mt-4">
         <div class="col-12">
@@ -102,29 +111,55 @@
                 <div class="card-body p-4 p-lg-5">
                     <h2 class="h4 mb-4">Gabarito</h2>
 
-                    <div th:each="q,idx : ${questoes}" class="mb-3">
+                    <div th:each="q,idx : ${questoes}" class="mb-3"
+                         th:with="
+                                   es=${#strings.trim(q.escolhida)},
+                                   co=${#strings.trim(q.correta)},
+                                   ok=${es != null and #strings.equalsIgnoreCase(es, co)},
+                                   txtEscolhida=${es=='A' ? q.a : (es=='B' ? q.b : (es=='C' ? q.c : (es=='D' ? q.d : '-')))},
+                                   txtCorreta=${co=='A' ? q.a : (co=='B' ? q.b : (co=='C' ? q.c : (co=='D' ? q.d : '-')))}
+                                 ">
                         <div class="d-flex align-items-center justify-content-between mb-2">
                             <div class="fw-semibold" th:text="'#' + (${idx.index}+1) + ' — ' + ${q.areaNome}">#1 — Área</div>
-                            <span th:with="ok=${q.escolhida != null and #strings.equalsIgnoreCase(#strings.trim(q.escolhida),
-                                               #strings.trim(q.correta))}" th:text="${ok} ? '✓' : '✗'">✓</span>
-                        </div>
+                                <span>
+                                  <i class="fa-regular fa-circle-check fa-2x text-success" th:if="${ok}"></i>
+                                  <i class="fa-regular fa-circle-xmark fa-2x text-danger" th:if="${!ok}"></i>
+                                </span>
+                            </div>
 
                         <div class="mb-2" th:text="${q.enunciado}">Enunciado</div>
 
-                        <div class="answer-line">
-                            <div class="small text-muted">Marcada</div>
-                            <div th:text="${q.escolhida} ?: '-'">-</div>
+                        <!-- ACERTOU: 1 linha só -->
+                        <div class="answer-line" th:if="${ok}">
+                            <div class="small text-muted">Marcada / Correta</div>
+                            <div>
+                                <b th:text="${co}">A</b> <span> — </span>
+                                <span th:text="${txtCorreta}">Texto correto</span>
+                            </div>
                         </div>
 
-                        <div class="answer-line">
-                            <div class="small text-muted">Correta</div>
-                            <div th:text="${q.correta}">A</div>
+                        <!-- ERROU: mostra as duas -->
+                        <div th:if="${!ok}">
+                            <div class="answer-line">
+                                <div class="small text-muted">Marcada</div>
+                                <div>
+                                    <b th:text="${es}">A</b> <span> — </span>
+                                    <span th:text="${txtEscolhida}">Texto marcado</span>
+                                </div>
+                            </div>
+                            <div class="answer-line">
+                                <div class="small text-muted">Correta</div>
+                                <div>
+                                    <b th:text="${co}">A</b> <span> — </span>
+                                    <span th:text="${txtCorreta}">Texto correto</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
                     <hr class="mt-4"/>
                     <div class="text-muted small">
-                        Observação: respostas não marcadas contam como erro (0 ponto).
+                        Observação: respostas não marcadas não retiram pontos.
                     </div>
                 </div>
             </div>

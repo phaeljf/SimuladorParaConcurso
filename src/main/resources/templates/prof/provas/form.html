@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8"/>
+  <title th:text="${pv != null ? 'Editar Prova' : 'Nova Prova'}">Nova Prova</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <link rel="stylesheet" th:href="@{/css/styles.css}"/>
+</head>
+<body>
+<nav class="navbar navbar-dark bg-dark">
+  <div class="container d-flex justify-content-between">
+    <a class="navbar-brand" th:href="@{/prof}">Professor</a>
+    <div class="d-flex gap-2">
+      <a class="btn btn-success btn-sm" th:href="@{/prof/provas}">Minhas Provas</a>
+      <form method="post" th:action="@{/prof/logout}">
+        <button class="btn btn-outline-light btn-sm">Sair</button>
+      </form>
+    </div>
+  </div>
+</nav>
+
+<main class="container py-4">
+  <h1 class="h5 mb-3" th:text="${pv != null ? 'Editar Prova' : 'Criar Prova'}">Criar Prova</h1>
+
+  <!-- EDITAR -->
+  <form th:if="${pv != null}" method="post"
+        th:action="@{/prof/provas/{id}/editar(id=${pv.id})}"
+        class="card p-3">
+    <div class="mb-3">
+      <label class="form-label">Título</label>
+      <input class="form-control" name="titulo" required maxlength="120" th:value="${pv.titulo}">
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Descrição</label>
+      <textarea class="form-control" name="descricao" rows="3" th:text="${pv.descricao}"></textarea>
+    </div>
+
+    <div class="row g-2">
+      <div class="col-12 col-md-4">
+        <label class="form-label">Tempo (minutos)</label>
+        <input class="form-control" name="tempoMinutos" type="number" min="1" th:value="${pv.tempoMinutos}">
+      </div>
+      <div class="col-12 col-md-4 d-flex align-items-end">
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" id="publicaE" name="publica" value="true" th:checked="${pv.publica}">
+          <label class="form-check-label" for="publicaE">Prova pública</label>
+        </div>
+      </div>
+      <div class="col-12 col-md-4 d-flex align-items-end">
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" id="mostrarGabaritoE" name="mostrarGabarito" value="true" th:checked="${pv.mostrarGabarito}">
+          <label class="form-check-label" for="mostrarGabaritoE">Mostrar gabarito no fim</label>
+        </div>
+      </div>
+    </div>
+
+    <div class="d-flex justify-content-between mt-4">
+      <a class="btn btn-outline-secondary" th:href="@{/prof/provas}">← Voltar</a>
+      <button class="btn btn-primary" type="submit">Salvar alterações</button>
+    </div>
+  </form>
+
+  <!-- CRIAR -->
+  <form th:unless="${pv != null}" method="post"
+        th:action="@{/prof/provas/nova}"
+        class="card p-3">
+
+    <div class="mb-3">
+      <label class="form-label">Título</label>
+      <input class="form-control" name="titulo" required maxlength="120">
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Descrição</label>
+      <textarea class="form-control" name="descricao" rows="3"></textarea>
+    </div>
+
+    <div class="row g-2">
+      <div class="col-12 col-md-4">
+        <label class="form-label">Tempo (minutos)</label>
+        <input class="form-control" name="tempoMinutos" type="number" min="1">
+      </div>
+      <div class="col-12 col-md-4 d-flex align-items-end">
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" id="publicaC" name="publica" value="true">
+          <label class="form-check-label" for="publicaC">Prova pública</label>
+        </div>
+      </div>
+      <div class="col-12 col-md-4 d-flex align-items-end">
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" id="mostrarGabaritoC" name="mostrarGabarito" value="true" checked>
+          <label class="form-check-label" for="mostrarGabaritoC">Mostrar gabarito no fim</label>
+        </div>
+      </div>
+    </div>
+    <hr class="my-3"/>
+
+    <h2 class="h6 mb-2">Questões desta prova</h2>
+    <div id="listaSel" class="list-group mb-2"></div>
+
+    <input type="hidden" name="itens" id="itens">
+
+    <div class="d-flex gap-2">
+      <button type="button" class="btn btn-primary" onclick="abrirModalQ()">Adicionar questão</button>
+      <button type="button" class="btn btn-outline-secondary" onclick="limparSel()">Limpar seleção</button>
+    </div>
+
+    <div class="d-flex justify-content-between mt-4">
+      <a class="btn btn-outline-secondary" th:href="@{/prof/provas}">← Voltar</a>
+      <button class="btn btn-primary" type="submit">Salvar</button>
+    </div>
+  </form>
+</main>
+<style>
+  .modalQ { position:fixed; inset:0; background:rgba(0,0,0,.5); display:none; align-items:center; justify-content:center; z-index:1100;}
+  .modalQ .box { background:#fff; width:min(900px, 95vw); max-height:85vh; overflow:auto; border-radius:12px; padding:16px; }
+  .badge { display:inline-block; padding:.25rem .5rem; border-radius:8px; background:#eef; margin-right:.25rem; font-size:.8rem;}
+  .tag { display:inline-flex; align-items:center; gap:.25rem; background:#f5f5f5; border-radius:999px; padding:.25rem .5rem; }
+  .itemQ { border:1px solid #e5e5e5; border-radius:10px; padding:.5rem .75rem; margin-bottom:.5rem; }
+  .itemQ .txt { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; }
+</style>
+
+<div id="modalQ" class="modalQ" onclick="if(event.target===this) fecharModalQ()">
+  <div class="box">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <h3 class="h6 m-0">Adicionar questões</h3>
+      <button class="btn btn-outline-secondary btn-sm" onclick="fecharModalQ()">Fechar</button>
+    </div>
+
+    <form id="fBuscaQ" class="row g-2 align-items-end mb-3" onsubmit="event.preventDefault()">
+      <div class="col-12 col-md-5">
+        <label class="form-label">Texto</label>
+        <input class="form-control" name="q" placeholder="digite para filtrar...">
+      </div>
+      <div class="col-12 col-md-3">
+        <label class="form-label">Área</label>
+        <select class="form-select" name="areaId">
+          <option value="">Todas</option>
+          <option th:each="a : ${areas}" th:value="${a.id}" th:text="${a.nome}">Área</option>
+        </select>
+      </div>
+      <div class="col-12 col-md-4">
+        <label class="form-label">Origem</label>
+        <div class="d-flex align-items-center gap-3 mt-1">
+          <label class="form-check-label">
+            <input class="form-check-input me-1" type="checkbox" name="minhas" checked> Minhas
+          </label>
+          <label class="form-check-label">
+            <input class="form-check-input me-1" type="checkbox" name="publicas" checked> Públicas
+          </label>
+        </div>
+      </div>
+    </form>
+
+    <div id="resQ" class="small text-muted">Digite para buscar…</div>
+    <div class="d-flex justify-content-center mt-2" id="pagQ"></div>
+  </div>
+</div>
+
+<script>
+  let sel = window.sel || [];        // seleção atual
+  let debTimer = null;               // debounce
+  let fetchCtl = null;               // AbortController para cancelar requisição em andamento
+  let termoAtual = "";               // evita chamadas repetidas com o mesmo termo
+
+  function abrirModalQ(){
+    const m = document.getElementById('modalQ');
+    if (!m) return;
+    m.style.display = 'flex';
+
+    // liga a auto-busca (uma única vez)
+    wireAutoBusca();
+
+    // primeira carga (página 0)
+    carregarBusca(0);
+  }
+
+  function fecharModalQ(){
+    const m = document.getElementById('modalQ');
+    if (m) m.style.display = 'none';
+  }
+
+  function wireAutoBusca(){
+    const f = document.getElementById('fBuscaQ');
+    if (!f || f.dataset.wired === '1') return; // já ligado
+
+    const dispara = () => {
+      clearTimeout(debTimer);
+      debTimer = setTimeout(() => carregarBusca(0), 350); // 350ms após digitar/trocar
+    };
+
+    f.q.addEventListener('input', dispara);
+    f.areaId.addEventListener('change', () => carregarBusca(0));
+    f.minhas.addEventListener('change', () => carregarBusca(0));
+    f.publicas.addEventListener('change', () => carregarBusca(0));
+
+    f.dataset.wired = '1';
+  }
+
+  function carregarBusca(page){
+    const f = document.getElementById('fBuscaQ');
+    const res = document.getElementById('resQ');
+    const pag = document.getElementById('pagQ');
+    if (!f || !res || !pag) return;
+
+    // monta query
+    const p = new URLSearchParams();
+    const texto = (f.q.value || '').trim();
+    const area  = (f.areaId.value || '').trim();
+    p.set('minhas',  f.minhas.checked  ? 'true' : 'false');
+    p.set('publicas',f.publicas.checked? 'true' : 'false');
+    p.set('page', String(Math.max(0, page || 0)));
+    p.set('size', '10');
+    if (texto) p.set('q', texto);
+    if (area)  p.set('areaId', area);
+
+    // evita refetch idêntico enquanto pagina==0 e termo não mudou
+    const chave = `${texto}|${area}|${f.minhas.checked}|${f.publicas.checked}|${page||0}`;
+    if (termoAtual === chave && (page||0) === 0) return;
+    termoAtual = chave;
+
+    // cancela requisição anterior (se existir)
+    if (fetchCtl) fetchCtl.abort();
+    fetchCtl = new AbortController();
+
+    // UI: loading
+    res.innerHTML = '<div class="text-muted">Carregando…</div>';
+    pag.innerHTML = '';
+
+    fetch('/prof/questoes/api/buscar?' + p.toString(), {signal: fetchCtl.signal})
+            .then(async r => {
+              if (!r.ok) throw new Error('HTTP '+r.status+' - '+await r.text());
+              return r.json();
+            })
+            .then(d => {
+              const itens = d.content || [];
+              if (!itens.length) {
+                res.innerHTML = '<div class="text-muted">Nenhuma questão encontrada.</div>';
+              } else {
+                res.innerHTML = '';
+                itens.forEach(it => {
+                  const row = document.createElement('div');
+                  row.className = 'itemQ';
+                  row.innerHTML = `
+            <div class="d-flex justify-content-between align-items-center">
+              <div class="txt">
+                <span class="badge">${it.area}</span>
+                <span class="badge" style="background:#efe">${it.publica ? 'Pública' : 'Privada'}</span>
+                <span>${it.enunciado}</span>
+              </div>
+              <button class="btn btn-sm btn-primary" type="button">Adicionar</button>
+            </div>`;
+                  row.querySelector('button').onclick = () => {
+                    if (!sel.includes(it.id)) { sel.push(it.id); renderSel(); }
+                  };
+                  res.appendChild(row);
+                });
+              }
+
+              // paginação
+              pag.innerHTML = '';
+              const total = d.totalPages || 0, cur = d.number || 0;
+              if (total > 1){
+                const mk = (lbl, cls, dis, cb) => {
+                  const b = document.createElement('button');
+                  b.className = 'btn btn-sm ' + cls;
+                  b.textContent = lbl;
+                  b.disabled = dis;
+                  b.onclick = cb;
+                  return b;
+                };
+                pag.appendChild(mk('«','btn-outline-secondary me-1', cur===0, () => carregarBusca(cur-1)));
+                for (let i=0; i<total; i++){
+                  pag.appendChild(mk(String(i+1), i===cur?'btn-primary':'btn-outline-secondary', false, () => carregarBusca(i)));
+                }
+                pag.appendChild(mk('»','btn-outline-secondary ms-1', cur===total-1, () => carregarBusca(cur+1)));
+              }
+            })
+            .catch(err => {
+              if (err.name === 'AbortError') return; // ignorar cancelamento
+              res.innerHTML = '<div class="alert alert-danger">Erro ao buscar: '+err.message+'</div>';
+              pag.innerHTML = '';
+            });
+  }
+
+  /* render da lista selecionada (mantém igual) */
+  function renderSel(){
+    const box = document.getElementById('listaSel');
+    if (!box) return;
+    box.innerHTML = '';
+    sel.forEach((id, idx) => {
+      const row = document.createElement('div');
+      row.className = 'list-group-item d-flex justify-content-between align-items-center';
+      row.innerHTML = `
+      <div><b>#${id}</b></div>
+      <div class="d-flex gap-2">
+        <button class="btn btn-sm btn-outline-secondary" ${idx===0?'disabled':''}>↑</button>
+        <button class="btn btn-sm btn-outline-secondary" ${idx===sel.length-1?'disabled':''}>↓</button>
+        <button class="btn btn-sm btn-outline-danger">Remover</button>
+      </div>`;
+      const [up,down,del] = row.querySelectorAll('button');
+      up.onclick   = ()=>{ if (idx>0) { [sel[idx-1], sel[idx]]=[sel[idx], sel[idx-1]]; renderSel(); } };
+      down.onclick = ()=>{ if (idx<sel.length-1) { [sel[idx+1], sel[idx]]=[sel[idx], sel[idx+1]]; renderSel(); } };
+      del.onclick  = ()=>{ sel = sel.filter(x => x !== id); renderSel(); };
+      box.appendChild(row);
+    });
+    const hidden = document.getElementById('itens');
+    if (hidden) hidden.value = sel.join(',');
+  }
+  function limparSel(){ sel=[]; renderSel(); }
+</script>
+
+
+
+</body>
+</html>

@@ -12,7 +12,7 @@
     .muted { color:#666; font-size:10pt; }
     .line { border-top:1px solid #ddd; margin:12px 0; }
 
-    /* Cabeçalho sem flex (tabela é bem suportada) */
+    /* Cabeçalho (tabela simplifica PDF) */
     .top { width:100%; border-collapse: collapse; margin-bottom: 6px; }
     .top td { vertical-align:middle; }
     .logo { height:28px; }
@@ -24,8 +24,13 @@
     .ok  { background:#eaf6ee; border-color:#9ad0b0; color:#175f3b; }
     .bad { background:#fdecec; border-color:#f1b0b7; color:#7c1d1d; }
 
-    /* Segurança de imagem (não estourar largura) */
     img { max-width: 200px; height: auto; }
+
+    .resposta-block {
+      margin-top: 8px;     /* espaço acima */
+      margin-bottom: 12px; /* espaço abaixo */
+      line-height: 1.4;    /* altura de linha confortável */
+    }
   </style>
 </head>
 <body>
@@ -39,29 +44,65 @@
 <h1>Resultado do Simulado</h1>
 <div class="muted" th:text="'Participante: ' + ${nome}">Participante</div>
 <div class="muted">
-  <span th:text="'Acertos: ' + ${acertos}"></span> ·
-  <span th:text="'Erros: ' + ${erros}"></span> ·
-  <span th:text="'Total: ' + ${total}"></span> ·
+  <span th:text="'Acertos: ' + ${acertos}">Acertos</span> ·
+  <span th:text="'Erros: ' + ${erros}">Erros</span> ·
+  <span th:text="'Total: ' + ${total}">Total</span> ·
   <span th:text="'Aproveitamento: ' + ${#numbers.formatDecimal((acertos*100.0)/total,1,1)} + ' %'">%</span>
 </div>
 
 <div class="line"></div>
 
 <h2>Gabarito</h2>
-<div th:each="q,idx : ${questoes}" class="q">
-  <strong th:text="'#' + (${idx.index}+1) + ' — ' + ${q.areaNome}">#1 — Área</strong><br/>
-  <div th:text="${q.enunciado}">Enunciado</div>
+
+<div th:each="q,idx : ${questoes}" class="q"
+     th:with="ok=${q.escolhida != null and #strings.equalsIgnoreCase(#strings.trim(q.escolhida), #strings.trim(q.correta))}">
+
+  <!-- Linha do título + selo -->
   <div>
-    <span class="muted">Marcada: </span><span th:text="${q.escolhida} ?: '-'">-</span>
-    &#160; | &#160;
-    <span class="muted">Correta: </span><span th:text="${q.correta}">A</span>
-    &#160; | &#160;
-    <span th:with="ok=${q.escolhida != null and
-                   #strings.equalsIgnoreCase(#strings.trim(q.escolhida),
-                                             #strings.trim(q.correta))}"
-          th:classappend="${ok} ? 'tag ok' : 'tag bad'"
+    <strong th:text="'#' + (${idx.index}+1) + ' — ' + ${q.areaNome}">#1 — Área</strong>
+    &#160;
+    <span th:classappend="${ok} ? 'tag ok' : 'tag bad'"
           th:text="${ok} ? 'ACERTOU' : 'ERROU'">ACERTOU</span>
   </div>
+  <br />
+  <!-- Enunciado -->
+  <div th:text="${q.enunciado}">Enunciado</div>
+
+  <!-- Blocos das respostas (acertou) -->
+  <div th:if="${ok}" class="resposta-block">
+    <span class="muted">Resposta correta: </span>
+    <div th:switch="${q.correta}" style="display:inline">
+      <div th:case="'A'" style="display:inline"><span th:text="${q.a}">A</span></div>
+      <div th:case="'B'" style="display:inline"><span th:text="${q.b}">B</span></div>
+      <div th:case="'C'" style="display:inline"><span th:text="${q.c}">C</span></div>
+      <div th:case="'D'" style="display:inline"><span th:text="${q.d}">D</span></div>
+      <div th:case="'E'" style="display:inline"><span th:text="${q.e}">E</span></div>
+    </div>
+  </div>
+
+  <!-- Blocos das respostas (errou) -->
+  <div th:if="${!ok}" class="resposta-block">
+    <span class="muted">Marcada: </span>
+    <div th:switch="${q.escolhida}" style="display:inline">
+      <div th:case="'A'" style="display:inline"><span th:text="${q.a}">A</span></div>
+      <div th:case="'B'" style="display:inline"><span th:text="${q.b}">B</span></div>
+      <div th:case="'C'" style="display:inline"><span th:text="${q.c}">C</span></div>
+      <div th:case="'D'" style="display:inline"><span th:text="${q.d}">D</span></div>
+      <div th:case="'E'" style="display:inline"><span th:text="${q.e}">E</span></div>
+      <div th:case="*" style="display:inline"><span>-</span></div>
+    </div>
+    <br/>
+    <span class="muted">Correta: </span>
+    <div th:switch="${q.correta}" style="display:inline">
+      <div th:case="'A'" style="display:inline"><span th:text="${q.a}">A</span></div>
+      <div th:case="'B'" style="display:inline"><span th:text="${q.b}">B</span></div>
+      <div th:case="'C'" style="display:inline"><span th:text="${q.c}">C</span></div>
+      <div th:case="'D'" style="display:inline"><span th:text="${q.d}">D</span></div>
+      <div th:case="'E'" style="display:inline"><span th:text="${q.e}">E</span></div>
+    </div>
+  </div>
+
 </div>
+
 </body>
 </html>

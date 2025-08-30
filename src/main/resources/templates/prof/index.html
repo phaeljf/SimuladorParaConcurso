@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8"/>
+  <title>Área do Professor</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <link rel="stylesheet" th:href="@{/css/styles.css}"/>
+  <!-- Se usar Bootstrap via CDN, garanta os imports globais -->
+</head>
+<body>
+<nav class="navbar navbar-dark bg-dark">
+  <div class="container d-flex justify-content-between align-items-center">
+    <a class="navbar-brand" th:href="@{/prof}"
+       th:text="${prof != null ? 'Professor • ' + prof.nome() : 'Professor'}">Professor</a>
+    <form method="post" th:action="@{/prof/logout}" class="m-0">
+      <button class="btn btn-outline-light btn-sm" type="submit">Sair</button>
+    </form>
+  </div>
+</nav>
+
+<main class="container py-5">
+  <h1 class="h4 mb-2" th:text="${prof != null ? 'Olá, ' + prof.nome() : 'Painel do Professor'}">Painel do Professor</h1>
+  <p class="text-muted mb-4">Escolha uma das opções abaixo.</p>
+
+  <div class="row g-3">
+    <div class="col-12 col-md-4">
+      <a class="btn btn-primary w-100" th:href="@{/prof/perfil}">Meu Perfil</a>
+    </div>
+    <div class="col-12 col-md-4">
+      <a class="btn btn-primary w-100" th:href="@{/prof/questoes/minhas}">Minhas Questões</a>
+    </div>
+    <div class="col-12 col-md-4">
+      <a class="btn btn-primary w-100" th:href="@{/prof/provas}">Minhas Provas</a>
+    </div>
+  </div>
+</main>
+</body>
+</html>

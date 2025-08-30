@@ -98,8 +98,7 @@ body {
   font-weight: var(--bs-body-font-weight);
   line-height: var(--bs-body-line-height);
   color: var(--bs-body-color);
-  text-align: var(--bs-body-text-align);
-  background-color: var(--bs-body-bg);
+   background-color: var(--bs-body-bg);
   -webkit-text-size-adjust: 100%;
   -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
 }
@@ -2456,10 +2455,8 @@ textarea.form-control-lg {
 .form-floating > .form-control-plaintext::placeholder {
   color: transparent;
 }
-.form-floating > .form-control:not(:-moz-placeholder-shown), .form-floating > .form-control-plaintext:not(:-moz-placeholder-shown) {
-  padding-top: 1.625rem;
-  padding-bottom: 0.625rem;
-}
+
+
 .form-floating > .form-control:focus, .form-floating > .form-control:not(:placeholder-shown),
 .form-floating > .form-control-plaintext:focus,
 .form-floating > .form-control-plaintext:not(:placeholder-shown) {
@@ -2475,10 +2472,7 @@ textarea.form-control-lg {
   padding-top: 1.625rem;
   padding-bottom: 0.625rem;
 }
-.form-floating > .form-control:not(:-moz-placeholder-shown) ~ label {
-  opacity: 0.65;
-  transform: scale(0.85) translateY(-0.5rem) translateX(0.15rem);
-}
+
 .form-floating > .form-control:focus ~ label,
 .form-floating > .form-control:not(:placeholder-shown) ~ label,
 .form-floating > .form-control-plaintext ~ label,
@@ -3621,7 +3615,6 @@ textarea.form-control-lg {
 .nav-link {
   display: block;
   padding: var(--bs-nav-link-padding-y) var(--bs-nav-link-padding-x);
-  font-size: var(--bs-nav-link-font-size);
   font-weight: var(--bs-nav-link-font-weight);
   color: var(--bs-nav-link-color);
   text-decoration: none;
@@ -3852,7 +3845,6 @@ textarea.form-control-lg {
 }
 
 .navbar-nav-scroll {
-  max-height: var(--bs-scroll-height, 75vh);
   overflow-y: auto;
 }
 
@@ -4478,7 +4470,7 @@ textarea.form-control-lg {
   flex-wrap: wrap;
   padding: var(--bs-breadcrumb-padding-y) var(--bs-breadcrumb-padding-x);
   margin-bottom: var(--bs-breadcrumb-margin-bottom);
-  font-size: var(--bs-breadcrumb-font-size);
+
   list-style: none;
   background-color: var(--bs-breadcrumb-bg);
   border-radius: var(--bs-breadcrumb-border-radius);
@@ -4491,7 +4483,6 @@ textarea.form-control-lg {
   float: left;
   padding-right: var(--bs-breadcrumb-item-padding-x);
   color: var(--bs-breadcrumb-divider-color);
-  content: var(--bs-breadcrumb-divider, "/") /* rtl: var(--bs-breadcrumb-divider, "/") */;
 }
 .breadcrumb-item.active {
   color: var(--bs-breadcrumb-item-active-color);
@@ -5202,7 +5193,7 @@ textarea.form-control-lg {
   --bs-toast-zindex: 1090;
   position: absolute;
   z-index: var(--bs-toast-zindex);
-  width: -moz-max-content;
+
   width: max-content;
   max-width: 100%;
   pointer-events: none;
@@ -6635,8 +6626,7 @@ textarea.form-control-lg {
   }
 }
 .placeholder-wave {
-  -webkit-mask-image: linear-gradient(130deg, #000 55%, rgba(0, 0, 0, 0.8) 75%, #000 95%);
-          mask-image: linear-gradient(130deg, #000 55%, rgba(0, 0, 0, 0.8) 75%, #000 95%);
+            mask-image: linear-gradient(130deg, #000 55%, rgba(0, 0, 0, 0.8) 75%, #000 95%);
   -webkit-mask-size: 200% 100%;
           mask-size: 200% 100%;
   animation: placeholder-wave 2s linear infinite;
@@ -10828,3 +10818,117 @@ body {
   background: url("https://dummyimage.com/1920x1080/dee2e6/6c757d.jpg") no-repeat center center fixed;
   background-size: cover;
 }
+
+/* ===== Overrides Home / Navegação / Offcanvas ===== */
+
+/* 1) Navbar: apenas o logo (sem texto) e espaçamento */
+.navbar-brand img { height: 36px; }
+
+/* 2) HERO: logo maior, título um pouco menor, centralizado */
+.hero {
+  min-height: auto;
+  padding: 30px 30px 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+.hero-logo {
+  width: 240px; height: auto;
+  object-fit: contain;
+  margin-bottom: 4px;
+}
+.hero h1 {
+  font-size: 2.1rem;              /* menor que antes */
+  font-weight: 600;
+  margin-bottom: .5rem;
+}
+
+
+/* fundo geral claro */
+html, body { height: auto !important; overflow-y: auto !important; }
+body, .hero, .wrapper, .page-bg { background-image: none !important; background-color: #f3f4f6; }
+
+/* 3) Offcanvas com mesmo fundo da página  */
+.offcanvas { background-color: #f3f4f6; }
+.offcanvas .form-label { margin-bottom: .25rem; }
+.offcanvas .btn-close { outline: none; }
+.offcanvas .text-muted a { text-decoration: none; }
+
+/* 4) Seção principal mais estreita (reduz “largura” dos cards) */
+.home-container {
+  max-width: 1040px;               /* deixa mais enxuto que .container padrão */
+  margin: 0 auto;
+}
+
+/* 5) Cards e botões: visual limpo e unificado */
+.card {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #fff;
+}
+.btn-primary {
+  padding: .55rem 1.2rem;
+  font-weight: 600;
+  border-radius: .6rem;
+  width: auto;           /* volta a ser só do tamanho do texto */
+  min-width: 180px;      /* largura mínima para não ficar pequeno demais */
+  text-align: center;
+}
+.btn-outline-primary {           /* caso algum lugar use outline, fica coerente */
+  border-radius: .6rem;
+  padding: .6rem 1.1rem;
+  font-weight: 600;
+}
+
+/* 6) Bloco de resultado de busca + botão “Fazer este simulado” */
+#resultadoBusca { min-height: .5rem; }
+#cardProvaSelecionada .border {
+  border-color: #e5e7eb !important;
+  border-radius: 10px;
+}
+
+/* 7) Espaçamentos utilitários usados nesta tela */
+.mt-6 { margin-top: 3.5rem; }
+
+/* Botão Fazer um Simulado */
+.btn-simulado {
+  width: auto;           /* botão só do tamanho do conteúdo */
+  min-width: 100px;      /* garante largura mínima */
+  padding: .55rem 1.2rem;
+  font-weight: 600;
+  border-radius: .6rem;
+  display: inline-block; /* para centralizar certinho */
+}
+
+.card .btn-simulado {
+  margin-left: auto;
+  margin-right: auto;
+  display: block;
+}
+
+/* Botões com mesma largura/altura e hover */
+.btn-eq {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 110px;       /* deixa iguais mesmo com textos diferentes */
+  height: 40px;           /* mesma altura */
+  padding: 0 .9rem;       /* ajuste fino das bordas */
+  border-radius: 10px;    /* cantos iguais */
+  font-weight: 600;
+  transition: transform .08s ease, box-shadow .2s ease, background-color .2s ease, color .2s ease;
+}
+.btn-eq:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(0,0,0,.15);
+}
+.btn-eq:active {
+  transform: none;
+  box-shadow: 0 2px 8px rgba(0,0,0,.10);
+}
+
+/* se quiser testar tamanhos diferentes rapidinho */
+.btn-eq-sm { min-width: 100px; height: 36px; }
+.btn-eq-lg { min-width: 140px; height: 44px; }
