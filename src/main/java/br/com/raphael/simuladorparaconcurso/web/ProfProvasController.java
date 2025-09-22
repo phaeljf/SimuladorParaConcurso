@@ -15,6 +15,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.transaction.annotation.Transactional;
+
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -64,18 +66,18 @@ public class ProfProvasController {
     public String formNova(Model model, HttpSession session) {
         var prof = sess(session);
         if (prof == null) return "redirect:/prof/login";
-        // o modal "Adicionar questão" usa ${areas}
-        model.addAttribute("areas", areaRepo.findAll());
+        model.addAttribute("areas", areaRepo.findAll()); // filtros do painel de busca
         return "prof/provas/form";
     }
 
     @PostMapping("/nova")
+    @org.springframework.transaction.annotation.Transactional
     public String salvar(@RequestParam String titulo,
                          @RequestParam(required=false) String descricao,
                          @RequestParam(required=false) Integer tempoMinutos,
                          @RequestParam(defaultValue="false") boolean publica,
-                         @RequestParam(defaultValue="true", name="mostrarGabarito") boolean mostrarGabarito,
-                         @RequestParam(name="itens", required=false) String itensCsv,
+                         @RequestParam(name="mostrarGabarito", defaultValue="false") boolean mostrarGabarito,
+                         @RequestParam(name="itens", required=false) List<Long> itens,
                          HttpSession session, RedirectAttributes ra) {
 
         var p = sess(session);
@@ -84,17 +86,15 @@ public class ProfProvasController {
         var e = new Prova();
         e.setTitulo(titulo);
         e.setDescricao(descricao);
+        if (tempoMinutos == null || tempoMinutos <= 0) tempoMinutos = 120; // fallback
         e.setTempoMinutos(tempoMinutos);
         e.setPublica(publica);
         e.setMostrarGabarito(mostrarGabarito);
         e.setCriadoPor(professorRepo.getReferenceById(p.id()));
         provaRepo.save(e);
 
-        // itens (se vierem do front)
-        var ids = parseItensCsv(itensCsv);
-        if (!ids.isEmpty()) {
-            salvarItens(e, ids);
-        }
+        var ids = sanitizeIds(itens);
+        if (!ids.isEmpty()) salvarItens(e, ids);
 
         ra.addFlashAttribute("ok", "Prova criada!");
         return "redirect:/prof/provas";
@@ -110,18 +110,25 @@ public class ProfProvasController {
         if (prova == null) { ra.addFlashAttribute("erro","Prova não encontrada."); return "redirect:/prof/provas"; }
 
         model.addAttribute("pv", prova);
-        model.addAttribute("areas", areaRepo.findAll()); // para o modal
+        model.addAttribute("areas", areaRepo.findAll());
+
+        // Lista de IDs (ordem atual) para o form (sem CSV)
+        var idsOrdenados = provaQuestaoRepo.findByProvaIdOrderByOrdemAsc(id)
+                .stream().map(pq -> pq.getQuestao().getId()).toList();
+        model.addAttribute("pvItens", idsOrdenados);
+
         return "prof/provas/form";
     }
 
     @PostMapping("/{id}/editar")
+    @org.springframework.transaction.annotation.Transactional
     public String salvarEd(@PathVariable Long id,
                            @RequestParam String titulo,
                            @RequestParam(required=false) String descricao,
                            @RequestParam(required=false) Integer tempoMinutos,
                            @RequestParam(defaultValue="false") boolean publica,
-                           @RequestParam(defaultValue="true", name="mostrarGabarito") boolean mostrarGabarito,
-                           @RequestParam(name="itens", required=false) String itensCsv,
+                           @RequestParam(name="mostrarGabarito", defaultValue="false") boolean mostrarGabarito,
+                           @RequestParam(name="itens", required=false) List<Long> itens,
                            HttpSession session, RedirectAttributes ra) {
 
         var p = sess(session);
@@ -130,24 +137,24 @@ public class ProfProvasController {
         var prova = provaRepo.findByIdAndCriadoPorIdAndAtivoTrue(id, p.id()).orElse(null);
         if (prova == null) { ra.addFlashAttribute("erro","Prova não encontrada."); return "redirect:/prof/provas"; }
 
-        // cabeçalho
         prova.setTitulo(titulo);
         prova.setDescricao(descricao);
+        if (tempoMinutos == null || tempoMinutos <= 0) tempoMinutos = 120; // fallback
         prova.setTempoMinutos(tempoMinutos);
         prova.setPublica(publica);
         prova.setMostrarGabarito(mostrarGabarito);
         provaRepo.save(prova);
 
-        // itens: estratégia simples = apaga e regrava na ordem recebida
+        // regrava itens na ordem recebida
         provaQuestaoRepo.deleteByProvaId(prova.getId());
-        var ids = parseItensCsv(itensCsv);
+        var ids = sanitizeIds(itens);
         if (!ids.isEmpty()) salvarItens(prova, ids);
 
         ra.addFlashAttribute("ok","Prova atualizada!");
         return "redirect:/prof/provas";
     }
 
-    // ============== JSON: itens atuais da prova (para pré-carregar no editar) ==============
+    // ============== JSON: itens atuais da prova (usado no EDITAR para hidratar enunciados) ==============
     @GetMapping("/{id}/itens")
     @ResponseBody
     public ResponseEntity<?> itens(@PathVariable Long id, HttpSession session) {
@@ -173,35 +180,27 @@ public class ProfProvasController {
     }
 
     // ============== utilitários internos ==============
-    private List<Long> parseItensCsv(String csv) {
-        if (csv == null || csv.isBlank()) return List.of();
-        return Arrays.stream(csv.split(","))
-                .map(String::trim)
-                .filter(s -> !s.isEmpty())
-                .map(s -> {
-                    try { return Long.valueOf(s); } catch (NumberFormatException e) { return null; }
-                })
-                .filter(Objects::nonNull)
-                .distinct()
-                .collect(Collectors.toList());
-    }
-
     private void salvarItens(Prova prova, List<Long> questaoIds) {
-        for (int i = 0; i < questaoIds.size(); i++) {
-            Long qid = questaoIds.get(i);
+        int ordem = 1;
+        for (Long qid : questaoIds) {
+            // verificado que serve como blindagem extra par não ocorrer erro
+            if (provaQuestaoRepo.existsByProvaIdAndQuestaoId(prova.getId(), qid)) continue;
+
             var pq = new ProvaQuestao();
             pq.setProva(prova);
-            var q = new Questao(); q.setId(qid); // referencia por id
+
+            var q = new Questao();
+            q.setId(qid);
             pq.setQuestao(q);
-            pq.setOrdem(i + 1);
+
+            pq.setOrdem(ordem++);
             provaQuestaoRepo.save(pq);
         }
     }
 
     @PostMapping("/{id}/excluir")
-    public String excluir(@PathVariable Long id,
-                          HttpSession session,
-                          RedirectAttributes ra) {
+    @Transactional
+    public String excluir(@PathVariable Long id, HttpSession session, RedirectAttributes ra) {
         var p = sess(session);
         if (p == null) return "redirect:/prof/login";
 
@@ -219,4 +218,11 @@ public class ProfProvasController {
         return "redirect:/prof/provas";
     }
 
+    private List<Long> sanitizeIds(List<Long> itens) {
+        if (itens == null || itens.isEmpty()) return List.of();
+        // preserva a ordem de chegada e remove nulos/duplicados
+        LinkedHashSet<Long> set = new LinkedHashSet<>();
+        for (Long id : itens) if (id != null) set.add(id);
+        return new ArrayList<>(set);
+    }
 }

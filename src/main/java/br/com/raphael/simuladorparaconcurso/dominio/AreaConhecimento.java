@@ -6,7 +6,8 @@ import lombok.Setter;
 
 @Entity
 @Table(name = "areas_conhecimento")
-@Getter @Setter
+@Getter
+@Setter
 public class AreaConhecimento {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -18,4 +19,8 @@ public class AreaConhecimento {
 
     @Column(nullable=false)
     private boolean ativo = true;
+
+    public Boolean getAtivo() {
+        return ativo;
+    }
 }

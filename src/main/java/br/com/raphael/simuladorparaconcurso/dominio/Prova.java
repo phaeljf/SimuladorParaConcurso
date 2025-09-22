@@ -3,6 +3,8 @@ package br.com.raphael.simuladorparaconcurso.dominio;
 import jakarta.persistence.*;
 import lombok.Getter; import lombok.Setter;
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity @Table(name="provas")
 @Getter @Setter
@@ -34,4 +36,7 @@ public class Prova {
 
     @Column(name="criado_em")
     private OffsetDateTime criadoEm = OffsetDateTime.now();
+
+    @OneToMany(mappedBy = "prova")
+    private List<ProvaQuestao> questoes = new ArrayList<>();
 }

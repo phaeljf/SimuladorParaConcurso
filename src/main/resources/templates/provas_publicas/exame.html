@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title th:text="'Exame • ' + ${prova.titulo}">Exame</title>
+
+  <!-- Reaproveita o mesmo CSS do projeto -->
+  <link rel="stylesheet" th:href="@{/css/styles.css}"/>
+</head>
+<body class="body-soft-bg"><!-- mesmo fundo suave do configurar -->
+
+<!-- Navbar igual à da landing/configurar -->
+<nav class="navbar navbar-dark bg-dark">
+  <div class="container px-4 px-lg-5">
+    <a class="navbar-brand d-flex align-items-center" th:href="@{/}">
+      <img class="brand-logo me-2" th:src="@{/assets/img/logo.png}" alt="Simulado Online">
+      <span>Simulado Online</span>
+    </a>
+  </div>
+</nav>
+
+<main class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-12 col-lg-8">
+      <div class="card card-glass">
+        <div class="card-body p-4 p-lg-5">
+          <h1 class="h3 mb-3" th:text="${prova.titulo}">Título da Prova</h1>
+
+          <div class="text-muted mb-4">
+            <div><b>Professor:</b> <span th:text="${prova.criadoPor.nome}">Professor</span></div>
+            <div><b>Tempo previsto:</b> <span th:text="${prova.tempoMinutos}">0</span> minutos</div>
+            <div><b>Total de questões:</b> <span th:text="${totalQuestoes}">0</span></div>
+          </div>
+
+          <!-- Resumo por área (opcional, mostra se 'areas' existir no model) -->
+          <div th:if="${areas}">
+            <h2 class="h6 mb-2">Distribuição por área</h2>
+            <div class="list-group mb-3">
+              <div class="list-group-item d-flex justify-content-between align-items-center"
+                   th:each="a : ${areas}">
+                <div class="me-3">
+                  <div class="fw-semibold" th:text="${a.nome}">Área</div>
+                </div>
+                <span class="badge bg-primary rounded-pill" th:text="${a.quantidade}">0</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Lista de questões (pré-visualização simples) -->
+          <div class="mb-4">
+            <h2 class="h6 mb-2">Questões desta prova</h2>
+            <div class="list-group">
+              <div class="list-group-item"
+                   th:each="pq : ${questoes}">
+                <div class="small text-muted mb-1">
+                  <span th:text="'#' + ${pq.ordem}">#1</span>
+                </div>
+                <div th:text="${pq.questao.enunciado}">
+                  Enunciado da questão…
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Ações -->
+          <div class="d-flex justify-content-between pt-2">
+            <a class="btn btn-outline-dark" th:href="@{/}">← Voltar</a>
+            <!-- ajuste o href para a rota real de início do simulado (se já existir) -->
+            <a class="btn btn-primary btn-lg px-4"
+               th:href="@{/simulado/iniciar(id=${prova.id})}">
+              Iniciar a prova
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <p class="text-center text-muted mt-3 small">
+        Dica: verifique o tempo e a distribuição por áreas antes de iniciar.
+      </p>
+    </div>
+  </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Reaproveita seu JS do projeto -->
+<script th:src="@{/js/scripts.js}"></script>
+</body>
+</html>

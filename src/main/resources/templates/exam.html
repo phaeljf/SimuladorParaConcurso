@@ -51,9 +51,9 @@
 <!-- Navbar com logo + timer -->
 <nav class="navbar navbar-dark bg-dark">
   <div class="container px-4 px-lg-5">
-    <a class="navbar-brand d-flex align-items-center" th:href="@{/}">
-      <img class="brand-logo me-2" th:src="@{/assets/img/logo.png}" alt="Simulado Online">
-      <span>Simulado Online</span>
+    <a class="navbar-brand" th:href="@{/}">
+      <img th:src="@{/assets/img/icon.ico}" alt="Logo" class="brand-logo">
+      Simulado Online
     </a>
 
     <div class="d-flex align-items-center gap-3">
@@ -114,6 +114,11 @@
             <div class="alt-item mb-4">
               <input id="altD" type="radio" name="alternativa" value="D" th:checked="${q.escolhida=='D'}"/>
               <label for="altD"><b>D.</b> <span th:text="${q.d}">Alternativa D</span></label>
+            </div>
+
+            <div class="alt-item mb-4" th:if="${q.e != null}">
+              <input id="altE" type="radio" name="alternativa" value="E" th:checked="${q.escolhida=='E'}"/>
+              <label for="altE"><b>E.</b> <span th:text="${q.e}">Alternativa E</span></label>
             </div>
 
             <!-- Navegação -->
