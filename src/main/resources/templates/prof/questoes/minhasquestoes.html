@@ -9,7 +9,8 @@
 <body>
 <nav class="navbar navbar-dark bg-dark">
   <div class="container d-flex justify-content-between">
-    <a class="navbar-brand" th:href="@{/prof}">Professor</a>
+    <a class="navbar-brand" th:href="@{/prof}"
+       th:text="${prof != null ? 'Professor • ' + prof.nome() : 'Professor'}">Professor</a>
     <div class="d-flex gap-2">
       <a class="btn btn-success btn-sm" th:href="@{/prof/questoes/nova}">+ Nova questão</a>
       <form method="post" th:action="@{/prof/logout}">
@@ -23,61 +24,75 @@
   <h1 class="h5 mb-3">Minhas questões</h1>
 
   <!-- Filtros -->
-  <form id="filtroQ" method="get" class="row g-2 align-items-end mb-3">
-    <div class="col-12 col-md-6">
+  <form id="filtroQ"
+        class="row g-2 align-items-end mb-3"
+        th:action="@{/prof/questoes/minhas}"
+        method="get">
+
+    <!-- 7/12: texto -->
+    <div class="col-12 col-md-5">
       <label class="form-label">Buscar no enunciado</label>
-      <input class="form-control" name="q" th:value="${f_q}">
+      <input class="form-control" name="q" th:value="${f_q}" placeholder="Buscar no enunciado">
     </div>
-    <div class="col-12 col-md-3">
+
+    <!-- 3/12: área -->
+    <div class="col-6 col-md-3 ">
       <label class="form-label">Área</label>
       <select class="form-select" name="areaId">
-        <option value="" th:selected="${f_areaId == null}">Todas</option>
+        <option value="">Todas</option>
         <option th:each="a : ${areas}"
                 th:value="${a.id}"
                 th:text="${a.nome}"
-                th:selected="${f_areaId != null and f_areaId == a.id}">
+                th:selected="${f_areaId} == ${a.id}">
           Área
         </option>
       </select>
     </div>
-    <div class="col-12 col-md-3">
+
+    <!-- 2/12: botões -->
+    <div class="col-6 col-md-3">
       <label class="form-label d-none d-md-block">&nbsp;</label>
-      <div class="d-grid d-md-flex gap-2">
-        <button class="btn btn-primary w-100 w-md-auto flex-fill" type="submit">Filtrar</button>
-        <a class="btn btn-outline-secondary w-100 w-md-auto flex-fill"
-           th:href="@{/prof/questoes/minhas}">Limpar</a>
+      <div class="d-grid d-md-flex gap-4">
+        <button class="btn btn-primary" type="submit">Filtrar</button>
+        <a class="btn btn-primary" th:href="@{/prof/questoes/minhas}">Limpar</a>
       </div>
     </div>
   </form>
 
+
   <!-- Lista -->
   <div class="list-group" th:if="${lista != null and !#lists.isEmpty(lista)}">
-    <div th:each="q : ${lista}" class="list-group-item ps-0 ps-sm-1 ps-md-2 ps-lg-3 pe-0 pe-sm-1 pe-md-3 pe-lg-4">
-    <div class="d-flex justify-content-between align-items-start gap-3">
-        <div class="flex-grow-1">
-          <div class="small text-muted mb-1">
-            <b th:text="'#' + ${q.id}">#</b>
-            • <span th:text="${q.areaConhecimento != null ? q.areaConhecimento.nome : 'Sem área'}">Área</span>
-            • <span th:text="'Correta: ' + ${q.correta}">Correta</span>
-            • <span th:text="${q.publica} ? 'Pública' : 'Privada'">Visibilidade</span>
-          </div>
-          <div th:text="${q.enunciado}">Enunciado...</div>
+    <div class="list-group-item d-flex justify-content-between align-items-start"
+         th:each="q : ${lista}">
+      <div class="me-3 flex-grow-1">
+        <div class="small text-muted mb-1">
+          <b th:text="'#' + ${q.id}">#</b>
+          • <span th:text="${q.areaConhecimento != null ? q.areaConhecimento.nome : 'Sem área'}">Área</span>
+          • <span th:text="'Correta: ' + ${q.correta}">Correta</span>
+          • <span th:text="${q.publica} ? 'Pública' : 'Privada'">Visibilidade</span>
         </div>
 
-        <div class="d-flex gap-2">
-          <a class="btn btn-primary btn-sm btn-eq"
-             th:href="@{/prof/questoes/{id}/editar(id=${q.id})}">Editar</a>
-
-          <form class="d-inline"
-                th:action="@{|/prof/questoes/${q.id}/excluir|}"
-                method="post"
-                onsubmit="return confirm('Excluir esta questão?')">
-            <button class="btn btn-danger btn-sm btn-eq" type="submit">Excluir</button>
-          </form>
+        <!-- se quiser truncar em uma linha para não empurrar os botões -->
+        <div th:text="${q.enunciado}"
+             style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width: 70ch;">
+          Enunciado...
         </div>
+      </div>
+
+      <div class="d-flex gap-2 flex-shrink-0">
+        <a class="btn btn-primary btn-sm btn-eq"
+           th:href="@{/prof/questoes/{id}/editar(id=${q.id})}">Editar</a>
+
+        <form class="d-inline"
+              th:action="@{|/prof/questoes/${q.id}/excluir|}"
+              method="post"
+              onsubmit="return confirm('Excluir esta questão?')">
+          <button class="btn btn-danger btn-sm btn-eq" type="submit">Excluir</button>
+        </form>
       </div>
     </div>
   </div>
+
 
   <div class="alert alert-info" th:if="${lista == null or #lists.isEmpty(lista)}">
     Você ainda não cadastrou questões.
@@ -113,16 +128,6 @@
   </div>
 </main>
 
-<script>
-  (function(){
-    const form = document.getElementById('filtroQ');
-    if (!form) return;
-    const q = form.querySelector('input[name="q"]');
-    const area = form.querySelector('select[name="areaId"]');
-    let t;
-    if (q) q.addEventListener('input', ()=>{ clearTimeout(t); t=setTimeout(()=>form.submit(), 500); });
-    if (area) area.addEventListener('change', ()=>form.submit());
-  })();
-</script>
+<script th:src="@{/js/scripts.js}"></script>
 </body>
 </html>

@@ -6,181 +6,139 @@
     <meta name="description" content="Simulado Online" />
     <title>Simulado Online</title>
 
-    <!-- Bootstrap CSS (sempre antes do seu styles.css) -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-          rel="stylesheet"
-          integrity="sha384-QWTKZyjpPPEjISv5WaRU9OFeRpok6YctnYmDr5pNLyT2bRjXhOJmhjY6hW+ALEwIH"
-          crossorigin="anonymous">
+    <!-- Icone da Pagina -->
+    <link rel="icon" type="image/x-icon" th:href="@{/assets/img/icon.ico}" />
 
-    <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" th:href="@{/assets/img/favicon.ico}" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 
-    <!-- Seu CSS -->
-    <link th:href="@{/css/styles.css(v=${#dates.createNow().time})}" rel="stylesheet" />
+    <!--  CSS -->
+    <link th:href="@{/css/styles.css}" rel="stylesheet" />
 </head>
 <body>
 
-<!-- NAVBAR (logo à esquerda + botões à direita) -->
-<nav class="navbar navbar-dark bg-dark">
-    <div class="container d-flex justify-content-between align-items-center">
-        <a class="navbar-brand" th:href="@{/}">
+    <!-- NAVBAR (logo à esquerda + botões à direita) -->
+    <nav class="navbar navbar-dark bg-dark">
+        <div class="container d-flex justify-content-between align-items-center">
+            <a class="navbar-brand" th:href="@{/}">
+                <img th:src="@{/assets/img/icon.ico}" alt="Logo" class="brand-logo">
+                Simulado Online
+            </a>
 
-        </a>
+            <div class="d-flex gap-2">
+                <!-- Botão Login -->
+                <button class="btn btn-outline-light btn-sm"
+                        type="button"
+                        data-bs-toggle="offcanvas"
+                        data-bs-target="#offcanvasRight"
+                        aria-controls="offcanvasRight">
+                    Login do professor
+                </button>
 
-        <div class="d-flex gap-2">
-            <!-- Botão LOGIN (abre offcanvas Login) -->
-            <button class="btn btn-outline-light btn-sm" type="button"
-                    data-bs-toggle="offcanvas" data-bs-target="#offcanvasRight"
-                    aria-controls="offcanvasRight">
-                Login do professor
-            </button>
-
-            <!-- Botão SOBRE (abre offcanvas About) -->
-            <button class="btn btn-outline-light btn-sm" type="button"
-                    data-bs-toggle="offcanvas" data-bs-target="#offcanvasAbout"
-                    aria-controls="offcanvasAbout">
-                Sobre
-            </button>
-        </div>
-    </div>
-</nav>
-
-<!-- OFFCANVAS: Login do Professor -->
-<div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasRight" aria-labelledby="offcanvasRightLabel">
-    <div class="offcanvas-header">
-        <h5 id="offcanvasRightLabel" class="mb-0">Entrar como Professor</h5>
-        <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Fechar"></button>
-    </div>
-    <div class="offcanvas-body">
-        <p class="text-muted">Informe suas credenciais para acessar o painel.</p>
-
-        <form method="post" th:action="@{/prof/login}" class="vstack gap-3" id="formLoginProf">
-            <!-- (se usar CSRF do Spring Security, incluir token aqui) -->
-            <div>
-                <label class="form-label">E-mail</label>
-                <input class="form-control" type="email" name="email" id="loginEmail" required placeholder="admin@exemplo.com">
+                <!-- Botão Sobre  -->
+                <button class="btn btn-outline-light btn-sm"
+                        type="button"
+                        data-bs-toggle="offcanvas"
+                        data-bs-target="#offcanvasAbout"
+                        aria-controls="offcanvasAbout">
+                    Sobre
+                </button>
             </div>
-            <div>
-                <label class="form-label">Senha</label>
-                <input class="form-control" type="password" name="senha" required placeholder="••••••••">
+        </div>
+    </nav>
+
+    <!-- OFFCANVAS: Login -->
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasRight" aria-labelledby="offcanvasRightLabel">
+        <div class="offcanvas-header">
+            <h5 id="offcanvasRightLabel" class="mb-0"></h5>
+            <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Fechar"></button>
+        </div>
+        <div class="offcanvas-body">
+            <div th:replace="login-form :: prof-login-form"></div>
+        </div>
+    </div>
+
+    <!-- OFFCANVAS: Sobre -->
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasAbout" aria-labelledby="offcanvasAboutLabel">
+        <div class="offcanvas-header">
+            <h5 id="offcanvasAboutLabel" class="mb-0">Sobre</h5>
+            <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Fechar"></button>
+        </div>
+        <div class="offcanvas-body">
+            <div class="text-center mb-3">
+                <img th:src="@{/assets/img/logo.png}" alt="Logo" style="height:120px;">
             </div>
-            <button class="btn btn-primary" type="submit">Entrar</button>
-        </form>
 
-        <hr class="my-4">
+            <p><strong>Simulado Online</strong> é uma plataforma <em>gratuita</em> para treinar questões de concursos e provas.</p>
+            <p>De forma <em>rápida e simples</em>, o usuário escolhe as áreas de conhecimento, define a quantidade de questões e o tempo, e já começa o simulado — sem precisar criar conta ou fazer login.</p>
+            <p>As questões são sorteadas aleatoriamente do banco de dados a cada prova, garantindo variedade e imparcialidade. Ao final, o participante vê um relatório com acertos, erros, porcentagem e gabarito detalhado.</p>
+            <p><strong>Tecnologias:</strong> Java + Spring Boot, PostgreSQL, Thymeleaf e JavaScript.</p>
+            <p><strong>Objetivo:</strong> tornar o treino de simulados mais acessível e prático para qualquer candidato.</p>
 
-        <small class="text-muted">
-            Esqueceu a senha? Fale com
-            <a href="mailto:suporte@seudominio.com">suporte@seudominio.com</a>.
-        </small>
-    </div>
-</div>
+            <p>
+                <strong>Autor:</strong> Raphael Pires —
+                <em>desenvolvedor e idealizador deste projeto</em>
+                <a href="https://github.com/phaeljf" target="_blank" rel="noopener noreferrer" class="ms-2 text-dark">
+                    <i class="bi bi-github" style="font-size:1.5rem;"></i>
+                </a>
+                <a href="https://www.linkedin.com/in/raphaellpires" target="_blank" rel="noopener noreferrer" class="ms-2 text-primary">
+                    <i class="bi bi-linkedin" style="font-size:1.5rem;"></i>
+                </a>
+            </p>
 
-<!-- OFFCANVAS: Sobre -->
-<div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasAbout" aria-labelledby="offcanvasAboutLabel">
-    <div class="offcanvas-header">
-        <h5 id="offcanvasAboutLabel" class="mb-0">Sobre</h5>
-        <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Fechar"></button>
-    </div>
-    <div class="offcanvas-body">
-        <div class="text-center mb-2">
-            <img th:src="@{/assets/img/logo.png}" alt="Logo" style="height:120px;"><br><br><br>
-        </div>
-        <p><strong>Simulado Online</strong> — plataforma para treinar conhecimentos e aumentar as chances no concurso.</p><br>
-        <p class="mb-2"><strong>Autor:</strong> Raphael Pires</p>
-        <div class="vstack gap-2">
-            <a class="btn btn-primary" href="https://www.linkedin.com/in/raphaellpires"
-               target="_blank" rel="noopener noreferrer">LinkedIn</a>
-            <a class="btn btn-primary" href="https://github.com/phaeljf"
-               target="_blank" rel="noopener noreferrer">GitHub</a>
         </div>
     </div>
-</div>
 
-<!-- CONTEÚDO -->
-<main>
-    <!-- HERO (logo grande + título MENOR + sem botão aqui) -->
-    <section class="hero">
-        <img th:src="@{/assets/img/logo.png}" alt="Logo Simulado" class="hero-logo">
-        <h1>Bem-vindo ao Simulado Online</h1>
-        <p class="lead">Treine seus conhecimentos e aumente suas chances no concurso.</p>
-    </section>
+    <main>
+        <!--  Tilulo e logo -->
+        <section class="principal">
+            <img th:src="@{/assets/img/logo.png}" alt="Logo Simulado" class="principal-logo">
+            <h1>Bem-vindo ao Simulado Online</h1>
+            <p class="lead">Treine seus conhecimentos e aumente suas chances no concurso.</p>
+        </section>
 
-    <!-- SEÇÃO principal com dois cards (container mais estreito) -->
-    <section class="home-container">
-        <div class="row g-3">
-            <!-- ESQ: Simulado do zero (botão padrão “Fazer um Simulado”) -->
-            <div class="col-12 col-lg-6">
-                <div class="card h-100 p-3">
-                    <h2 class="h5">Fazer um simulado do zero</h2>
-                    <p class="text-muted mb-3">
-                        Configure seu próprio simulado escolhendo as áreas de conhecimento e a quantidade de questões.
-                    </p>
-                    <!-- 6) Aqui fica o botão Fazer um Simulado -->
-                    <a class="btn btn-primary" th:href="@{/configurar}">Fazer um Simulado</a>
+        <!-- Seção principal com duas areas de seleção -->
+        <section class="home-container">
+            <div class="row g-3">
+                <!-- Lado esquerdo: Fazer Simulado do zero com o botão para iniciar ele-->
+                <div class="col-12 col-lg-6">
+                    <div class="card card-home">
+                        <h2 class="h5">Fazer um simulado do zero</h2>
+                        <p class="text-muted mb-3">
+                            Configure seu próprio simulado escolhendo as áreas de conhecimento e a quantidade de questões.
+                        </p>
+                        <a class="btn btn-primary btn-eq" th:href="@{/configurar}">Fazer um Simulado</a>
+                    </div>
                 </div>
-            </div>
 
-            <!-- DIR: Pesquisar simulados prontos -->
-            <div class="col-12 col-lg-6">
-                <div class="card h-100 p-3">
-                    <h2 class="h5">Simulados já programados</h2>
-                    <p class="text-muted">Pesquise provas públicas cadastradas por professores.</p>
+                <!-- Lado direito: Pesquisar simulados prontos -->
+                <div class="col-12 col-lg-6">
+                    <div class="card card-home">
+                        <h2 class="h5">Simulados já programados</h2>
+                        <p class="text-muted">Pesquise provas públicas cadastradas por professores.</p>
 
-                    <!-- 7) Busca + resultado com botão “Fazer este simulado” -->
-                    <input class="form-control mb-2" type="search" id="buscaProva" placeholder="Digite para pesquisar…">
-                    <div id="resultadoBusca" class="small"></div>
+                        <input class="form-control mb-2" type="search" id="buscaProva" placeholder="Digite para pesquisar…">
+                        <div id="resultadoBusca" class="small"></div>
 
-                    <!-- Mostra quando um item for “selecionado” -->
-                    <div id="cardProvaSelecionada" class="mt-3 d-none">
-                        <div class="border p-3">
-                            <strong id="tituloProva">Título da prova</strong>
-                            <div class="mt-2 d-flex gap-2">
-                                <a id="btnFazerProva" class="btn btn-primary" href="#">Fazer este simulado</a>
-                                <a class="btn btn-outline-primary" th:href="@{/provas}">Pesquisa avançada</a>
+                        <!-- Mostra as prova das pesquisa-->
+                        <div id="cardProvaSelecionada" class="card d-none mt-3">
+                            <div class="card-body d-flex justify-content-between align-items-center">
+                                <a id="btnFazerProva" class="btn btn-primary w-100" href="/provas">Pesquisa avançada</a>
                             </div>
                         </div>
                     </div>
-
                 </div>
             </div>
-        </div>
-    </section>
-</main>
+        </section>
+    </main>
 
-<footer class="home-container py-4">
-    <small class="text-muted">© Simulado Online</small>
-</footer>
+    <footer class="home-container py-4">
+        <small class="text-muted">© Desenvolvido por Raphael</small>
+    </footer>
 
-<!-- Bootstrap bundle (necessário para offcanvas) -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Bootstrap bundle (necessário para offcanvas) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
 
-<!-- UX: foco no e-mail ao abrir o offcanvas de login + demo da busca -->
-<script>
-    document.getElementById('offcanvasRight')
-        ?.addEventListener('shown.bs.offcanvas', function () {
-            document.getElementById('loginEmail')?.focus();
-        });
-
-    // Demo simples da busca (troque depois por fetch /provas/search)
-    const input = document.getElementById('buscaProva');
-    const card = document.getElementById('cardProvaSelecionada');
-    const titulo = document.getElementById('tituloProva');
-    const btn = document.getElementById('btnFazerProva');
-
-    input?.addEventListener('input', () => {
-        const termo = input.value.trim();
-        if (termo.length >= 3) {
-            titulo.textContent = 'Prova: ' + termo;
-            btn.href = '/p/' + encodeURIComponent(termo.toLowerCase().replace(/\s+/g, '-'));
-            card.classList.remove('d-none');
-        } else {
-            card.classList.add('d-none');
-        }
-    });
-</script>
-
-<!-- Seu JS (mantido) -->
-<script th:src="@{/js/scripts.js(v=${#dates.createNow().time})}"></script>
+    <!-- Script -->
+    <script th:src="@{/js/scripts.js}"></script>
 </body>
 </html>

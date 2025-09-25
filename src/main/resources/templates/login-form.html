@@ -1,0 +1,62 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- Fragmento: form de login do professor -->
+<div th:fragment="prof-login-form">
+  <form method="post" th:action="@{/prof/login}" id="formLoginProf" novalidate>
+    <div class="login-card login-card-compact">
+      <div class="login-header">
+        <h2 class="h4 mb-1">Área do Professor</h2>
+      </div>
+
+      <!-- Alerta de erro -->
+      <div class="alert alert-danger" th:if="${erro}" th:text="${erro}"></div>
+
+      <!-- E-mail -->
+      <div class="form-group">
+        <div class="input-wrapper">
+          <input type="email" id="loginEmail" name="email"
+                 th:value="${email}" required autocomplete="email">
+          <label for="loginEmail">E-mail</label>
+        </div>
+        <span class="error-message" id="emailError"></span>
+      </div>
+
+      <!-- Senha -->
+      <div class="form-group">
+        <div class="input-wrapper password-wrapper">
+          <input type="password" id="loginSenha" name="senha" required autocomplete="current-password">
+          <label for="loginSenha">Senha</label>
+          <button type="button" class="password-toggle" id="toggleSenha" aria-label="Mostrar/ocultar senha">
+            <span class="eye-icon"></span>
+          </button>
+        </div>
+        <span class="error-message" id="passwordError"></span>
+      </div>
+
+      <!-- Ações -->
+      <div class="form-options">
+        <label class="remember-wrapper">
+          <input type="checkbox" id="remember" name="remember-me">
+          <span class="checkbox-label">
+             <span class="checkmark"></span> Manter conectado
+          </span>
+        </label>
+      </div>
+
+
+      <button type="submit" class="btn btn-primary btn-eq">
+        <span class="btn-text">Logar</span>
+        <span class="btn-loader"></span>
+      </button>
+    </div>
+  </form>
+
+  <hr class="my-4">
+  <small class="text-muted">Esqueceu a senha? Fale com
+    <a href="mailto:suporte@seudominio.com">suporte@seudominio.com</a>.
+  </small>
+</div>
+</body>
+</html>

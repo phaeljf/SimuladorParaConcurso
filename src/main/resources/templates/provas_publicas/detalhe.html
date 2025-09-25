@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title th:text="'Prova • ' + ${pv.titulo}">Prova</title>
+
+  <link rel="icon" type="image/x-icon" th:href="@{/assets/img/icon.ico}" />
+  <link th:href="@{/css/styles.css}" rel="stylesheet"/>
+</head>
+<body>
+
+<!-- mesma navbar do index -->
+<nav class="navbar navbar-dark bg-dark">
+  <div class="container d-flex justify-content-between align-items-center">
+    <a class="navbar-brand" th:href="@{/}">
+      <img th:src="@{/assets/img/icon.ico}" alt="Logo" class="brand-logo">
+      Simulado Online
+    </a>
+    <div class="d-flex gap-2">
+      <a class="btn btn-outline-light btn-sm" th:href="@{/prof/login}">Login do professor</a>
+    </div>
+  </div>
+</nav>
+
+<main class="home-container py-4"><!-- mesmo container do index -->
+  <div class="row justify-content-center">
+    <div class="col-12 col-lg-8">
+      <div class="card card-home"><!-- mesmo visual de card -->
+        <div class="card-body p-4 p-lg-5">
+
+          <!-- título -->
+          <h1 class="h4 mb-1" th:text="${pv.titulo}">Título da prova</h1>
+          <p class="text-muted mb-4">
+            Professor: <span th:text="${pv.criadoPor != null ? pv.criadoPor.nome : '—'}">Professor</span> •
+            Tempo: <span th:text="${pv.tempoMinutos}">0</span> min
+          </p>
+
+          <!-- descrição (se existir) -->
+          <div class="mb-3" th:if="${pv.descricao}">
+            <p class="mb-0" th:text="${pv.descricao}">Descrição da prova…</p>
+          </div>
+
+          <!-- distribuição por áreas -->
+          <div class="mb-4" th:if="${areas} and ${areas.size()} > 0">
+            <h2 class="h6 mb-2">Distribuição de questões por área</h2>
+            <div class="list-group">
+              <div class="list-group-item d-flex justify-content-between align-items-center"
+                   th:each="a : ${areas}">
+                <span th:text="${a.areaNome}">Área</span>
+                <span class="badge bg-primary rounded-pill" th:text="${a.quantidade}">0</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- total -->
+          <div class="small text-muted mb-4" th:if="${totalQuestoes != null}">
+            Total de questões: <strong th:text="${totalQuestoes}">0</strong>
+          </div>
+          <div class="input-wrapper">
+            <input type="text" name="nome" class="input-wrapper input" required placeholder="Seu nome">
+          </div>
+          <br>
+          <!-- ações -->
+          <div class="d-flex flex-column flex-sm-row gap-2 justify-content-between">
+            <a class="btn btn-outline-dark" th:href="@{/}">← Voltar</a>
+
+            <!-- NOVO: form para pedir o nome antes de iniciar -->
+            <form th:action="@{'/provas/' + ${pv.id} + '/iniciar'}" method="post" class="d-flex gap-2">
+
+              <button type="submit" class="btn btn-primary">Iniciar a prova</button>
+            </form>
+          </div>
+
+        </div>
+      </div>
+
+      <p class="text-center text-muted mt-3 small">
+        Revise o tempo e a distribuição por áreas antes de iniciar.
+      </p>
+    </div>
+  </div>
+</main>
+
+<footer class="home-container py-4">
+  <small class="text-muted">© Desenvolvido por Raphael</small>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/js/scripts.js}"></script>
+</body>
+</html>

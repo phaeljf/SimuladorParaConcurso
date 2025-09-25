@@ -7,6 +7,9 @@ import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.web.bind.annotation.*;
+import br.com.raphael.simuladorparaconcurso.dominio.Dificuldade;
+import br.com.raphael.simuladorparaconcurso.dominio.Escolaridade;
+
 
 import java.util.Map;
 
@@ -20,6 +23,8 @@ public class ProfQuestoesApiController {
     @GetMapping("/buscar")
     public Map<String,Object> buscar(@RequestParam(required=false) String q,
                                      @RequestParam(required=false, name="areaId") String areaIdStr,
+                                     @RequestParam(required=false) Dificuldade dificuldade,   // << NOVO
+                                     @RequestParam(required=false) Escolaridade escolaridade, // << NOVO
                                      @RequestParam(defaultValue="true") boolean minhas,
                                      @RequestParam(defaultValue="true") boolean publicas,
                                      @RequestParam(defaultValue="0") int page,
@@ -35,8 +40,12 @@ public class ProfQuestoesApiController {
 
         var texto = (q == null || q.isBlank()) ? null : q.trim();
 
+        String dif = (dificuldade  != null ? dificuldade.name()  : null);
+        String esc = (escolaridade != null ? escolaridade.name() : null);
+
         var pg = questaoRepo.buscarParaProva(
                 sess.id(), minhas, publicas, areaId, texto,
+                dif, esc,
                 org.springframework.data.domain.PageRequest.of(Math.max(page,0), Math.min(Math.max(size,1),50))
         );
 

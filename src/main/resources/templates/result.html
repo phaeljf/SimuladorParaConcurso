@@ -56,9 +56,9 @@
 <!-- Navbar -->
 <nav class="navbar navbar-dark bg-dark">
     <div class="container px-4 px-lg-5">
-        <a class="navbar-brand d-flex align-items-center" th:href="@{/}">
-            <img class="brand-logo me-2" th:src="@{/assets/img/logo.png}" alt="Simulado Online">
-            <span>Simulado Online</span>
+        <a class="navbar-brand" th:href="@{/}">
+            <img th:src="@{/assets/img/icon.ico}" alt="Logo" class="brand-logo">
+            Simulado Online
         </a>
     </div>
 </nav>
@@ -66,17 +66,17 @@
 <main class="container py-4">
 
     <!-- Metricas -->
-    <div class="row g-3 align-items-stretch">  <!-- ADICIONE align-items-stretch -->
+    <div class="row g-3 align-items-stretch">
         <div class="fs-3 text-dark">
             <span>Participante: </span>
             <strong class="fs-4 fw-bold" th:text="${nome}">Nome</strong>
         </div>
-        <div class="col-12 col-md-4 d-flex">     <!-- ADICIONE d-flex -->
-            <div class="card card-glass metric-card metric-ok h-100 w-100"> <!-- ADICIONE h-100 w-100 -->
+        <div class="col-12 col-md-4 d-flex">
+            <div class="card card-glass metric-card metric-ok h-100 w-100">
                 <div class="card-body">
                     <div class="text-muted small">Acertos</div>
                     <div class="display-6 fw-bold" th:text="${acertos}">0</div>
-                    <div class="text-muted small invisible">placeholder</div> <!-- opcional, ver #2 -->
+                    <div class="text-muted small invisible">placeholder</div>
                 </div>
             </div>
         </div>
@@ -86,7 +86,7 @@
                 <div class="card-body">
                     <div class="text-muted small">Erros</div>
                     <div class="display-6 fw-bold" th:text="${erros}">0</div>
-                    <div class="text-muted small invisible">placeholder</div> <!-- opcional -->
+                    <div class="text-muted small invisible">placeholder</div>
                 </div>
             </div>
         </div>

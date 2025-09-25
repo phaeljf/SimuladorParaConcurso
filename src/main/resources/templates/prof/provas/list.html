@@ -9,7 +9,8 @@
 <body>
 <nav class="navbar navbar-dark bg-dark">
   <div class="container d-flex justify-content-between">
-    <a class="navbar-brand" th:href="@{/prof}">Professor</a>
+    <a class="navbar-brand" th:href="@{/prof}"
+       th:text="${prof != null ? 'Professor • ' + prof.nome() : 'Professor'}">Professor</a>
     <div class="d-flex gap-2">
       <a class="btn btn-success btn-sm" th:href="@{/prof/provas/nova}">+ Nova Prova</a>
       <form method="post" th:action="@{/prof/logout}">
@@ -96,15 +97,6 @@
   </div>
 </main>
 
-<script>
-  // auto-submit ao digitar (500ms)
-  (function(){
-    const f = document.getElementById('filtroP');
-    if (!f) return;
-    const q = f.querySelector('input[name="q"]');
-    let t;
-    if (q) q.addEventListener('input', ()=>{ clearTimeout(t); t=setTimeout(()=>f.submit(), 500); });
-  })();
-</script>
+<script th:src="@{/js/scripts.js}"></script>
 </body>
 </html>

@@ -1,15 +1,20 @@
 package br.com.raphael.simuladorparaconcurso.web;
 
+import br.com.raphael.simuladorparaconcurso.dominio.Prova;
+import br.com.raphael.simuladorparaconcurso.dominio.ProvaQuestao;
 import br.com.raphael.simuladorparaconcurso.modelo.*;
 import br.com.raphael.simuladorparaconcurso.repositorio.AreaConhecimentoRepositorio;
+import br.com.raphael.simuladorparaconcurso.repositorio.ProvaQuestaoRepositorio;
+import br.com.raphael.simuladorparaconcurso.repositorio.ProvaRepositorio;
 import br.com.raphael.simuladorparaconcurso.servico.SimuladoServico;
 import br.com.raphael.simuladorparaconcurso.servico.ServicoPdf;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import org.apache.coyote.BadRequestException;
-import org.thymeleaf.context.WebContext;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 import org.thymeleaf.spring6.SpringTemplateEngine;
 import org.thymeleaf.context.Context;
@@ -20,31 +25,26 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import br.com.raphael.simuladorparaconcurso.dominio.Dificuldade;
+import br.com.raphael.simuladorparaconcurso.dominio.Escolaridade;
 
 
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Controller
+@RequiredArgsConstructor
 public class SimuladoControlador {
 
     private final AreaConhecimentoRepositorio areaRepo;
     private final SimuladoServico simuladoServico;
-
+    private final ProvaRepositorio provaRepositorio;
+    private final ProvaQuestaoRepositorio provaQuestaoRepositorio;
     // PDF
     private final SpringTemplateEngine templateEngine;
     private final ServicoPdf servicoPdf;
-
-    public SimuladoControlador(AreaConhecimentoRepositorio areaRepo,
-                               SimuladoServico simuladoServico,
-                               SpringTemplateEngine templateEngine,
-                               ServicoPdf servicoPdf) {
-        this.areaRepo = areaRepo;
-        this.simuladoServico = simuladoServico;
-        this.templateEngine = templateEngine;
-        this.servicoPdf = servicoPdf;
-    }
 
     // Landing (lista de áreas para configurar)
     @GetMapping("/configurar")
@@ -66,7 +66,9 @@ public class SimuladoControlador {
                           @RequestParam(defaultValue = "0") int minutos,
                           @RequestParam List<Long> areaId,
                           @RequestParam List<Integer> quantidade,
-                          HttpSession session) throws BadRequestException {
+                          @RequestParam(required = false) Dificuldade dificuldade,
+                          @RequestParam(required = false) Escolaridade escolaridade,
+                          HttpSession session) {
 
         // (area -> quantidade) preservando ordem
         LinkedHashMap<Long, Integer> mapa = new LinkedHashMap<>();
@@ -76,8 +78,8 @@ public class SimuladoControlador {
         }
         if (mapa.isEmpty()) return "redirect:/";
 
-        // sorteia e monta
-        List<QuestaoExibicao> questoes = simuladoServico.montarSimulado(mapa);
+        // sorteia e monta (AGORA passando filtros)
+        List<QuestaoExibicao> questoes = simuladoServico.montarSimulado(mapa, dificuldade, escolaridade);
 
         // escolhas legíveis
         List<EscolhaArea> escolhas = new ArrayList<>();
@@ -88,34 +90,34 @@ public class SimuladoControlador {
 
         // sessão
         SessaoSimulado s = new SessaoSimulado();
-        s.nomeCandidato = nome;
-        s.escolhas = escolhas;
-        s.questoes = questoes;
-        s.indiceAtual = 0;
+        s.setNomeCandidato(nome);
+        s.setEscolhas(escolhas);
+        s.setQuestoes(questoes);
+        s.setIndiceAtual(0);
 
         long duracaoMin = (long) horas * 60 + minutos;
-        s.fim = duracaoMin > 0 ? Instant.now().plusSeconds(duracaoMin * 60) : null;
+        s.setFim(duracaoMin > 0 ? Instant.now().plusSeconds(duracaoMin * 60) : null);
 
         session.setAttribute("sessaoSimulado", s);
-        return "redirect:/simulado";
+        return "redirect:/simulado/q/1";
     }
 
     @GetMapping("/simulado")
     public String simulado(@RequestParam(required = false) Integer q, Model model, HttpSession session) {
         SessaoSimulado s = (SessaoSimulado) session.getAttribute("sessaoSimulado");
         if (s == null) return "redirect:/";
-        if (s.fim != null && Instant.now().isAfter(s.fim)) return "redirect:/resultado";
+        if (s.getFim() != null && Instant.now().isAfter(s.getFim())) return "redirect:/resultado";
 
-        if (q != null) s.indiceAtual = Math.max(0, Math.min(q, s.questoes.size() - 1));
-        QuestaoExibicao atual = s.questoes.get(s.indiceAtual);
+        if (q != null) s.setIndiceAtual(Math.max(0, Math.min(q, s.getQuestoes().size() - 1)));
+        QuestaoExibicao atual = s.getQuestoes().get(s.getIndiceAtual());
 
         Long restanteMs = null;
-        if (s.fim != null) restanteMs = Duration.between(Instant.now(), s.fim).toMillis();
+        if (s.getFim() != null) restanteMs = Duration.between(Instant.now(), s.getFim()).toMillis();
 
         model.addAttribute("q", atual);
-        model.addAttribute("pos", s.indiceAtual);
-        model.addAttribute("total", s.questoes.size());
-        model.addAttribute("nome", s.nomeCandidato);
+        model.addAttribute("pos", s.getIndiceAtual());
+        model.addAttribute("total", s.getQuestoes().size());
+        model.addAttribute("nome", s.getNomeCandidato());
         model.addAttribute("restanteMs", restanteMs);
         return "exam";
     }
@@ -127,18 +129,35 @@ public class SimuladoControlador {
                             HttpSession session) {
         SessaoSimulado s = (SessaoSimulado) session.getAttribute("sessaoSimulado");
         if (s == null) return "redirect:/";
-        if (s.fim != null && Instant.now().isAfter(s.fim)) return "redirect:/resultado";
-
-        if (alternativa != null && !alternativa.isBlank()) {
-            s.questoes.get(pos).escolhida = alternativa.substring(0, 1).toUpperCase();
+        if (s.getFim() != null && java.time.Instant.now().isAfter(s.getFim())) {
+            return "redirect:/resultado";
         }
 
-        if ("ant".equals(acao)) s.indiceAtual = Math.max(pos - 1, 0);
-        if ("prox".equals(acao)) s.indiceAtual = Math.min(pos + 1, s.questoes.size() - 1);
-        if ("fim".equals(acao)) return "redirect:/resultado";
+        // saneia pos dentro dos limites
+        int total = (s.getQuestoes() == null) ? 0 : s.getQuestoes().size();
+        if (total == 0) return "redirect:/configurar";
+        pos = Math.max(0, Math.min(pos, total - 1));
 
-        return "redirect:/simulado?q=" + s.indiceAtual;
+        // normaliza e valida alternativas
+        if (alternativa != null && !alternativa.isBlank()) {
+            String alt = alternativa.substring(0, 1).toUpperCase(); // "A".."E"
+            if ("A".equals(alt) || "B".equals(alt) || "C".equals(alt) || "D".equals(alt) || "E".equals(alt)) {
+                s.getQuestoes().get(pos).setEscolhida(alt);
+            }
+        }
+
+        // navegação
+        switch (acao) {
+            case "ant" -> s.setIndiceAtual(Math.max(pos - 1, 0));
+            case "prox" -> s.setIndiceAtual(Math.min(pos + 1, total - 1));
+            case "fim"  -> { return "redirect:/resultado"; }
+            default     -> s.setIndiceAtual(pos); // sem ação válida, permanece
+        }
+
+        // redireciona para a rota RESTful
+        return "redirect:/simulado/q/" + (s.getIndiceAtual() + 1);
     }
+
 
     @PostMapping("/finalizar")
     public String finalizar() {
@@ -188,12 +207,140 @@ public class SimuladoControlador {
 
     // ---------- utilitário ----------
     private void preencherResumoResultado(Model model, SessaoSimulado s) {
-        int acertos = simuladoServico.corrigir(s.questoes);
-        int total = s.questoes.size();
-        model.addAttribute("nome", s.nomeCandidato);
+        int acertos = simuladoServico.corrigir(s.getQuestoes());
+        int total = s.getQuestoes().size();
+        model.addAttribute("nome", s.getNomeCandidato());
         model.addAttribute("acertos", acertos);
         model.addAttribute("erros", total - acertos);
         model.addAttribute("total", total);
-        model.addAttribute("questoes", s.questoes);
+        model.addAttribute("questoes", s.getQuestoes());
     }
+
+
+    @GetMapping("/provas/{id}")
+    public String detalheProva(@PathVariable Long id, Model model) {
+        Prova prova = provaRepositorio.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Prova não encontrada"));
+
+        // Carrega itens da prova
+        List<ProvaQuestao> itens = provaQuestaoRepositorio.findByProvaId(id);
+        int total = itens.size();
+
+        // Agrupa por área — detalhe.html espera 'areaNome' e 'quantidade'
+        Map<String, Long> porArea = itens.stream().collect(Collectors.groupingBy(
+                pq -> {
+                    var area = pq.getQuestao().getAreaConhecimento();
+                    return area != null ? area.getNome() : "Sem área";
+                },
+                LinkedHashMap::new,
+                Collectors.counting()
+        ));
+
+        record AreaResumo(String areaNome, int quantidade) {}
+        List<AreaResumo> areas = porArea.entrySet().stream()
+                .map(e -> new AreaResumo(e.getKey(), e.getValue().intValue()))
+                .toList();
+
+        model.addAttribute("pv", prova);
+        model.addAttribute("areas", areas);             // <- nomes do detalhe.html
+        model.addAttribute("totalQuestoes", total);
+        model.addAttribute("iniciarUrl", "/provas/" + id + "/exame/start");
+
+        return "provas_publicas/detalhe";               // :contentReference[oaicite:2]{index=2}
+    }
+
+
+    @GetMapping("/provas/{id}/exame")
+    public String abrirExame(@PathVariable Long id, Model model, HttpSession session) {
+        Prova prova = provaRepositorio.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Prova não encontrada"));
+
+        model.addAttribute("prova", prova);
+        return "provas_publicas/exame"; // templates/provas_publicas/exame.html
+    }
+
+
+
+    @GetMapping("/simulado/q/{n}")
+    public String mostrarQuestao(@PathVariable int n, Model model, HttpSession session) {
+        SessaoSimulado s = (SessaoSimulado) session.getAttribute("sessaoSimulado");
+        if (s == null || s.getQuestoes() == null || s.getQuestoes().isEmpty()) {
+            return "redirect:/configurar"; // volta pro form se não houver sessão
+        }
+
+        int total = s.getQuestoes().size();
+        int pos = Math.max(0, Math.min(n - 1, total - 1));
+
+        // tempo restante (ms) ou null (sem limite)
+        Long restanteMs = null;
+        if (s.getFim() != null) {
+            long ms = java.time.Duration.between(java.time.Instant.now(), s.getFim()).toMillis();
+            restanteMs = Math.max(0, ms);
+        }
+
+        // pega a questão corrente (QuestaoExibicao) — seus getters são getA..getE(), getEnunciado(), getAreaNome(), getEscolhida()
+        QuestaoExibicao qx = s.getQuestoes().get(pos);
+
+        // DTO que o template consome (inclui E!)
+        record Q(
+                String enunciado,
+                String a, String b, String c, String d, String e,
+                String areaNome,
+                String escolhida
+        ) {}
+
+        model.addAttribute("nome", s.getNomeCandidato());
+        model.addAttribute("restanteMs", restanteMs);
+        model.addAttribute("pos", pos);
+        model.addAttribute("total", total);
+        model.addAttribute("q", new Q(
+                qx.getEnunciado(),
+                qx.getA(), qx.getB(), qx.getC(), qx.getD(), qx.getE(),   // <- agora com E
+                qx.getAreaNome(),
+                qx.getEscolhida()
+        ));
+
+        s.setIndiceAtual(pos); // opcional: guardar posição atual
+        return "exam"; // templates/exam.html
+    }
+
+    @PostMapping("/provas/{id}/iniciar")
+    public String iniciarProvaExistente(@PathVariable Long id,
+                                        @RequestParam String nome,
+                                        HttpSession session) {
+        var prova = provaRepositorio.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Prova não encontrada"));
+
+        var itens = provaQuestaoRepositorio.findByProvaId(id);
+        if (itens == null || itens.isEmpty()) {
+            // sem questões → volta ao detalhe
+            return "redirect:/provas/" + id;
+        }
+
+        // Converte para QuestaoExibicao (já com A..E)
+        var questoes = itens.stream()
+                .map(br.com.raphael.simuladorparaconcurso.dominio.ProvaQuestao::getQuestao)
+                .map(br.com.raphael.simuladorparaconcurso.modelo.QuestaoExibicao::de)
+                .toList();
+
+        // (opcional) embaralhar ordem:
+        // questoes = new ArrayList<>(questoes); Collections.shuffle(questoes);
+
+        var s = new br.com.raphael.simuladorparaconcurso.modelo.SessaoSimulado();
+        s.setNomeCandidato(nome);
+        s.setQuestoes(new java.util.ArrayList<>(questoes));
+        s.setIndiceAtual(0);
+        s.setEscolhas(java.util.Collections.emptyList()); // se não usar, pode omitir
+
+        if (prova.getTempoMinutos() != null) {
+            s.setFim(java.time.Instant.now().plusSeconds(prova.getTempoMinutos() * 60L));
+        } else {
+            s.setFim(null);
+        }
+
+        session.setAttribute("sessaoSimulado", s);
+        return "redirect:/simulado/q/1"; // reaproveita o mesmo exam.html
+    }
+
+
 }

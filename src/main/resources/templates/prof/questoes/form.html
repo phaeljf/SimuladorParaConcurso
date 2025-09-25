@@ -2,85 +2,336 @@
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="utf-8"/>
-  <title>Meu Perfil • Área do Professor</title>
+  <title th:text="${q != null} ? 'Editar questão' : 'Nova questão'">Nova questão</title>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <link rel="stylesheet" th:href="@{/css/styles.css}"/>
 </head>
 <body>
 <nav class="navbar navbar-dark bg-dark">
   <div class="container d-flex justify-content-between">
-    <a class="navbar-brand" th:href="@{/prof}">Professor</a>
-    <form method="post" th:action="@{/prof/logout}">
-      <button class="btn btn-outline-light btn-sm" type="submit">Sair</button>
-    </form>
+    <a class="navbar-brand" th:href="@{/prof}"
+       th:text="${prof != null ? 'Professor • ' + prof.nome() : 'Professor'}">Professor</a>
+    <div class="d-flex gap-2">
+      <a class="btn btn-success btn-sm" th:href="@{/prof/questoes/minhas}">Minhas questões</a>
+      <form method="post" th:action="@{/prof/logout}">
+        <button class="btn btn-outline-light btn-sm" type="submit">Sair</button>
+      </form>
+    </div>
   </div>
 </nav>
 
 <main class="container py-4">
-  <h1 class="h5 mb-3">Meu Perfil</h1>
+  <h1 class="h5 mb-3" th:text="${q != null} ? 'Editar questão' : 'Nova questão'">Nova questão</h1>
 
-  <div class="alert alert-success" th:if="${ok}" th:text="${ok}"></div>
-  <div class="alert alert-danger" th:if="${erro}" th:text="${erro}"></div>
+  <div th:if="${erro}" class="alert alert-danger" th:text="${erro}">Erro</div>
+  <div th:if="${ok}" class="alert alert-success" th:text="${ok}">OK</div>
 
-  <div class="row g-4">
-    <div class="col-12 col-lg-6">
-      <form method="post" th:action="@{/prof/perfil/salvar}" class="card p-3">
-        <h2 class="h6 mb-3">Dados principais</h2>
+  <!-- ===================== EDITAR ===================== -->
+  <form th:if="${q != null}" th:action="@{|/prof/questoes/${q.id}/editar|}" method="post" class="row g-3">
 
-        <div class="mb-3">
-          <label class="form-label">Nome</label>
-          <input class="form-control" name="nome" required th:value="${p.nome}">
-        </div>
-
-        <div class="mb-3">
-          <label class="form-label">E-mail</label>
-          <input class="form-control" type="email" name="email" required th:value="${p.email}">
-        </div>
-
-        <div class="mb-3">
-          <label class="form-label">Profissão</label>
-          <input class="form-control" name="profissao" th:value="${p.profissao}">
-        </div>
-
-        <div class="mb-3">
-          <label class="form-label">Telefone</label>
-          <input class="form-control" name="telefone" th:value="${p.telefone}">
-        </div>
-
-        <div class="d-flex justify-content-end">
-          <button class="btn btn-primary">Salvar</button>
-        </div>
-      </form>
+    <!-- Área -->
+    <div class="col-12 col-md-6">
+      <label class="form-label">Área</label>
+      <select class="form-select" name="areaId" required>
+        <option value="">Selecione…</option>
+        <option th:each="a : ${areas}"
+                th:value="${a.id}"
+                th:text="${a.nome}"
+                th:selected="${q.areaConhecimento != null and q.areaConhecimento.id == a.id}">
+        </option>
+      </select>
     </div>
 
-    <div class="col-12 col-lg-6">
-      <form method="post" th:action="@{/prof/perfil/senha}" class="card p-3">
-        <h2 class="h6 mb-3">Trocar senha</h2>
-
-        <div class="alert alert-danger" th:if="${erroSenha}" th:text="${erroSenha}"></div>
-        <div class="alert alert-success" th:if="${okSenha}" th:text="${okSenha}"></div>
-
-        <div class="mb-3">
-          <label class="form-label">Senha atual</label>
-          <input class="form-control" type="password" name="senhaAtual" required>
-        </div>
-
-        <div class="mb-3">
-          <label class="form-label">Nova senha</label>
-          <input class="form-control" type="password" name="novaSenha" required minlength="6">
-        </div>
-
-        <div class="mb-3">
-          <label class="form-label">Confirmar nova senha</label>
-          <input class="form-control" type="password" name="confirmaSenha" required minlength="6">
-        </div>
-
-        <div class="d-flex justify-content-end">
-          <button class="btn btn-warning">Alterar senha</button>
-        </div>
-      </form>
+    <!-- NOVO: Dificuldade -->
+    <div class="col-12 col-md-6">
+      <label class="form-label">Dificuldade</label>
+      <select class="form-select" name="dificuldade" required>
+        <option value="FACIL"     th:selected="${q.dificuldade?.name() == 'FACIL'}">Fácil</option>
+        <option value="MODERADA"  th:selected="${q.dificuldade?.name() == 'MODERADA'}">Moderada</option>
+        <option value="DIFICIL"   th:selected="${q.dificuldade?.name() == 'DIFICIL'}">Difícil</option>
+      </select>
     </div>
-  </div>
+
+    <!-- NOVO: Escolaridade -->
+    <div class="col-12 col-md-6">
+      <label class="form-label">Escolaridade</label>
+      <select class="form-select" name="escolaridade" required>
+        <option value="FUNDAMENTAL" th:selected="${q.escolaridade?.name() == 'FUNDAMENTAL'}">Fundamental</option>
+        <option value="MEDIO"       th:selected="${q.escolaridade?.name() == 'MEDIO'}">Médio</option>
+        <option value="SUPERIOR"    th:selected="${q.escolaridade?.name() == 'SUPERIOR'}">Superior</option>
+      </select>
+    </div>
+
+
+    <!-- Visibilidade -->
+    <div class="col-12 col-md-6 d-flex align-items-end gap-4">
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" id="publica_edit" name="publica" th:checked="${q.publica}">
+        <label class="form-check-label" for="publica_edit">Pública</label>
+      </div>
+    </div>
+
+    <!-- Título (opcional) -->
+    <div class="col-12 col-lg-6">
+      <label class="form-label">Título (opcional)</label>
+      <input class="form-control" name="titulo" th:value="${q.titulo}">
+    </div>
+
+    <!-- Enunciado -->
+    <div class="col-12">
+      <label class="form-label">Enunciado</label>
+      <textarea class="form-control" name="enunciado" rows="6" required
+                th:text="${q.enunciado}"
+                placeholder="Digite o enunciado da questão"></textarea>
+    </div>
+
+    <!-- Alternativas + escolha da correta embutida -->
+    <div class="col-12">
+      <label class="form-label d-block mb-2">Alternativas (marque a correta)</label>
+
+      <!-- A -->
+      <div class="input-group mb-2">
+        <span class="input-group-text">A</span>
+        <input class="form-control" name="alternativaA" required
+               th:value="${q.alternativaA}"
+               oninput="toggleRadio('correta_edit_A', this.value)">
+        <div class="input-group-text">
+          <input class="form-check-input mt-0" type="radio" name="correta" id="correta_edit_A" value="A" required
+                 th:checked="${#strings.equalsIgnoreCase(q.correta + '', 'A')}">
+          <label class="ms-1" for="correta_edit_A">Correta</label>
+        </div>
+      </div>
+
+      <!-- B -->
+      <div class="input-group mb-2">
+        <span class="input-group-text">B</span>
+        <input class="form-control" name="alternativaB" required
+               th:value="${q.alternativaB}"
+               oninput="toggleRadio('correta_edit_B', this.value)">
+        <div class="input-group-text">
+          <input class="form-check-input mt-0" type="radio" name="correta" id="correta_edit_B" value="B" required
+                 th:checked="${#strings.equalsIgnoreCase(q.correta + '', 'B')}">
+          <label class="ms-1" for="correta_edit_B">Correta</label>
+        </div>
+      </div>
+
+      <!-- C -->
+      <div class="input-group mb-2">
+        <span class="input-group-text">C</span>
+        <input class="form-control" name="alternativaC" required
+               th:value="${q.alternativaC}"
+               oninput="toggleRadio('correta_edit_C', this.value)">
+        <div class="input-group-text">
+          <input class="form-check-input mt-0" type="radio" name="correta" id="correta_edit_C" value="C" required
+                 th:checked="${#strings.equalsIgnoreCase(q.correta + '', 'C')}">
+          <label class="ms-1" for="correta_edit_C">Correta</label>
+        </div>
+      </div>
+
+      <!-- D -->
+      <div class="input-group mb-2">
+        <span class="input-group-text">D</span>
+        <input class="form-control" name="alternativaD" required
+               th:value="${q.alternativaD}"
+               oninput="toggleRadio('correta_edit_D', this.value)">
+        <div class="input-group-text">
+          <input class="form-check-input mt-0" type="radio" name="correta" id="correta_edit_D" value="D" required
+                 th:checked="${#strings.equalsIgnoreCase(q.correta + '', 'D')}">
+          <label class="ms-1" for="correta_edit_D">Correta</label>
+        </div>
+      </div>
+
+      <!-- E (opcional) -->
+      <div class="input-group mb-2">
+        <span class="input-group-text">E</span>
+        <input class="form-control" name="alternativaE"
+               th:value="${q.alternativaE}"
+               oninput="toggleRadio('correta_edit_E', this.value)">
+        <div class="input-group-text">
+          <input class="form-check-input mt-0" type="radio" name="correta" id="correta_edit_E" value="E"
+                 th:disabled="${#strings.isEmpty(q.alternativaE)}"
+                 th:checked="${#strings.equalsIgnoreCase(q.correta + '', 'E')}">
+          <label class="ms-1" for="correta_edit_E">Correta</label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Ativa -->
+    <div class="col-12">
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" id="ativa_edit" name="ativo" th:checked="${q.ativo}">
+        <label class="form-check-label" for="ativa_edit">Questão ativa</label>
+      </div>
+    </div>
+
+    <!-- Ações -->
+    <div class="col-12 d-flex gap-2">
+      <button class="btn btn-success" type="submit">Salvar alterações</button>
+      <a class="btn btn-outline-secondary" th:href="@{/prof/questoes/minhas}">Cancelar</a>
+    </div>
+  </form>
+
+  <!-- ===================== NOVA ===================== -->
+  <form th:unless="${q != null}" th:action="@{/prof/questoes/nova}" method="post" class="row g-3">
+
+    <!-- Área -->
+    <div class="col-12 col-md-6">
+      <label class="form-label">Área</label>
+      <select class="form-select" name="areaId" required>
+        <option value="" selected>Selecione…</option>
+        <option th:each="a : ${areas}" th:value="${a.id}" th:text="${a.nome}"></option>
+      </select>
+    </div>
+
+    <!-- depois do bloco Área (dentro do form de nova) -->
+
+    <!-- NOVO: Dificuldade -->
+    <div class="col-12 col-md-6">
+      <label class="form-label">Dificuldade</label>
+      <select class="form-select" name="dificuldade" required>
+        <option value="" selected disabled>Selecione…</option>
+        <option value="FACIL">Fácil</option>
+        <option value="MODERADA">Moderada</option>
+        <option value="DIFICIL">Difícil</option>
+      </select>
+    </div>
+
+    <!-- NOVO: Escolaridade -->
+    <div class="col-12 col-md-6">
+      <label class="form-label">Escolaridade</label>
+      <select class="form-select" name="escolaridade" required>
+        <option value="" selected disabled>Selecione…</option>
+        <option value="FUNDAMENTAL">Fundamental</option>
+        <option value="MEDIO">Médio</option>
+        <option value="SUPERIOR">Superior</option>
+      </select>
+    </div>
+
+    <!-- depois do bloco Área (dentro do form de nova) -->
+
+    <!-- NOVO: Dificuldade -->
+    <div class="col-12 col-md-6">
+      <label class="form-label">Dificuldade</label>
+      <select class="form-select" name="dificuldade" required>
+        <option value="" selected disabled>Selecione…</option>
+        <option value="FACIL">Fácil</option>
+        <option value="MODERADA">Moderada</option>
+        <option value="DIFICIL">Difícil</option>
+      </select>
+    </div>
+
+    <!-- NOVO: Escolaridade -->
+    <div class="col-12 col-md-6">
+      <label class="form-label">Escolaridade</label>
+      <select class="form-select" name="escolaridade" required>
+        <option value="" selected disabled>Selecione…</option>
+        <option value="FUNDAMENTAL">Fundamental</option>
+        <option value="MEDIO">Médio</option>
+        <option value="SUPERIOR">Superior</option>
+      </select>
+    </div>
+
+    <!-- Visibilidade -->
+    <div class="col-12 col-md-6 d-flex align-items-end gap-4">
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" id="publica_new" name="publica" checked>
+        <label class="form-check-label" for="publica_new">Pública</label>
+      </div>
+    </div>
+
+    <!-- Título (opcional) -->
+    <div class="col-12 col-lg-6">
+      <label class="form-label">Título (opcional)</label>
+      <input class="form-control" name="titulo">
+    </div>
+
+    <!-- Enunciado -->
+    <div class="col-12">
+      <label class="form-label">Enunciado</label>
+      <textarea class="form-control" name="enunciado" rows="6" required
+                placeholder="Digite o enunciado da questão"></textarea>
+    </div>
+
+    <!-- Alternativas + escolha da correta embutida -->
+    <div class="col-12">
+      <label class="form-label d-block mb-2">Alternativas (marque a correta)</label>
+
+      <!-- A -->
+      <div class="input-group mb-2">
+        <span class="input-group-text">A</span>
+        <input class="form-control" name="alternativaA" required
+               placeholder="Texto da alternativa A"
+               oninput="toggleRadio('correta_new_A', this.value)">
+        <div class="input-group-text">
+          <input class="form-check-input mt-0" type="radio" name="correta" id="correta_new_A" value="A" required>
+          <label class="ms-1" for="correta_new_A">Correta</label>
+        </div>
+      </div>
+
+      <!-- B -->
+      <div class="input-group mb-2">
+        <span class="input-group-text">B</span>
+        <input class="form-control" name="alternativaB" required
+               placeholder="Texto da alternativa B"
+               oninput="toggleRadio('correta_new_B', this.value)">
+        <div class="input-group-text">
+          <input class="form-check-input mt-0" type="radio" name="correta" id="correta_new_B" value="B" required>
+          <label class="ms-1" for="correta_new_B">Correta</label>
+        </div>
+      </div>
+
+      <!-- C -->
+      <div class="input-group mb-2">
+        <span class="input-group-text">C</span>
+        <input class="form-control" name="alternativaC" required
+               placeholder="Texto da alternativa C"
+               oninput="toggleRadio('correta_new_C', this.value)">
+        <div class="input-group-text">
+          <input class="form-check-input mt-0" type="radio" name="correta" id="correta_new_C" value="C" required>
+          <label class="ms-1" for="correta_new_C">Correta</label>
+        </div>
+      </div>
+
+      <!-- D -->
+      <div class="input-group mb-2">
+        <span class="input-group-text">D</span>
+        <input class="form-control" name="alternativaD" required
+               placeholder="Texto da alternativa D"
+               oninput="toggleRadio('correta_new_D', this.value)">
+        <div class="input-group-text">
+          <input class="form-check-input mt-0" type="radio" name="correta" id="correta_new_D" value="D" required>
+          <label class="ms-1" for="correta_new_D">Correta</label>
+        </div>
+      </div>
+
+      <!-- E (opcional) -->
+      <div class="input-group mb-2">
+        <span class="input-group-text">E</span>
+        <input class="form-control" name="alternativaE"
+               placeholder="Texto da alternativa E (opcional)"
+               oninput="toggleRadio('correta_new_E', this.value)">
+        <div class="input-group-text">
+          <input class="form-check-input mt-0" type="radio" name="correta" id="correta_new_E" value="E" disabled>
+          <label class="ms-1" for="correta_new_E">Correta</label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Ativa -->
+    <div class="col-12">
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" id="ativa_new" name="ativo" checked>
+        <label class="form-check-label" for="ativa_new">Questão ativa</label>
+      </div>
+    </div>
+
+    <!-- Ações -->
+    <div class="col-12 d-flex gap-2">
+      <button class="btn btn-success" type="submit">Salvar</button>
+      <a class="btn btn-outline-secondary" th:href="@{/prof/questoes/minhas}">Cancelar</a>
+    </div>
+  </form>
 </main>
+<script th:src="@{/js/scripts.js}"></script>
 </body>
 </html>

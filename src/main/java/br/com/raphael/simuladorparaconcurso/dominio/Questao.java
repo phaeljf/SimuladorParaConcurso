@@ -4,6 +4,9 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Table(name = "questoes")
 @Getter @Setter
@@ -38,6 +41,14 @@ public class Questao {
 
     @Column(name = "ativo", nullable = false)
     private boolean ativo = true;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "dificuldade", nullable = false, length = 10)
+    private Dificuldade dificuldade = Dificuldade.FACIL;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "escolaridade", nullable = false, length = 12)
+    private Escolaridade escolaridade = Escolaridade.FUNDAMENTAL;
 
     // --- normalização ---
 
