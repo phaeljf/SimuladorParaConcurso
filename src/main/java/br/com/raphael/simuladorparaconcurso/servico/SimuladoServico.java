@@ -9,10 +9,8 @@ import org.springframework.stereotype.Service;
 import br.com.raphael.simuladorparaconcurso.dominio.Dificuldade;
 import br.com.raphael.simuladorparaconcurso.dominio.Escolaridade;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+
 
 @Slf4j
 @Service
@@ -58,16 +56,21 @@ public class SimuladoServico {
                 n = disponiveis;
             }
 
-            // CASO 1: comportamento "simples" (igual ao seu de antes)
-            // → professor/usuário informou UMA dificuldade e/ou UMA escolaridade
+            // CASO 1: professor informou UMA dificuldade e/ou UMA escolaridade
             if (dif != null || esc != null) {
                 List<Questao> sorteadas = questaoRepositorio.buscarAleatoriasPorAreaComFiltros(areaId, n, dif, esc);
                 sorteadas.stream().map(QuestaoExibicao::de).forEach(lista::add);
                 continue;
             }
 
-            // CASO 2: modo PREDEFINIDO (dificuldade == null) + distribuição por escolaridade da prova
-            // → quando dificuldade não foi informada, aplicamos 20/60/20
+            // CASO 2: sem filtros de dificuldade/escolaridade → busca direta
+            if (dif == null && esc == null) {
+                List<Questao> sorteadas = questaoRepositorio.buscarAleatoriasPorAreaComFiltros(areaId, n, null, null);
+                sorteadas.stream().map(QuestaoExibicao::de).forEach(lista::add);
+                continue;
+            }
+
+            // CASO 3: EM BREVE (dificuldade == null) distribuição por escolaridade da prova
             var bucketsEsc = cotasEscolaridade(escolaridade, n); // pode gerar [ (ESC=null,n) ] se nivel não for informado
 
             for (var escPair : bucketsEsc) {
@@ -127,7 +130,7 @@ public class SimuladoServico {
         for (QuestaoExibicao q : qs) {
             if (q == null) continue;
             String esc = q.getEscolhida(); // pode ser null
-            String cor = q.getCorreta();   // "A".."E"
+            String cor = q.getCorreta();   // "A" a "E"
             if (esc != null && cor != null && cor.equalsIgnoreCase(esc)) {
                 acertos++;
             }
@@ -158,28 +161,36 @@ public class SimuladoServico {
         return base;
     }
 
-    private List<Map.Entry<br.com.raphael.simuladorparaconcurso.dominio.Escolaridade,Integer>>
-    cotasEscolaridade(br.com.raphael.simuladorparaconcurso.dominio.Escolaridade nivelProva, int n) {
+    private List<Map.Entry<Escolaridade,Integer>>
+    cotasEscolaridade(Escolaridade nivelProva, int n) {
+        if (nivelProva == null) {
+            return List.of(new AbstractMap.SimpleEntry<>(null, n));
+        }
         // regra: FUNDAMENTAL 100%; MEDIO 90/10; SUPERIOR 60/40
         switch (nivelProva) {
-            case FUNDAMENTAL: return List.of(Map.entry(br.com.raphael.simuladorparaconcurso.dominio.Escolaridade.FUNDAMENTAL, n));
+            case FUNDAMENTAL:
+                return java.util.List.of(
+                        java.util.Map.entry(Escolaridade.FUNDAMENTAL, n)
+                );
             case MEDIO: {
                 int[] q = splitProporcional(n, 90, 10);
-                return List.of(
-                        Map.entry(br.com.raphael.simuladorparaconcurso.dominio.Escolaridade.MEDIO, q[0]),
-                        Map.entry(br.com.raphael.simuladorparaconcurso.dominio.Escolaridade.FUNDAMENTAL, q[1])
+                return java.util.List.of(
+                        java.util.Map.entry(Escolaridade.MEDIO, q[0]),
+                        java.util.Map.entry(Escolaridade.FUNDAMENTAL, q[1])
                 );
             }
             case SUPERIOR: {
                 int[] q = splitProporcional(n, 60, 40);
-                return List.of(
-                        Map.entry(br.com.raphael.simuladorparaconcurso.dominio.Escolaridade.SUPERIOR, q[0]),
-                        Map.entry(br.com.raphael.simuladorparaconcurso.dominio.Escolaridade.MEDIO, q[1])
+                return java.util.List.of(
+                        java.util.Map.entry(Escolaridade.SUPERIOR, q[0]),
+                        java.util.Map.entry(Escolaridade.MEDIO, q[1])
                 );
             }
-            default: // fallback seguro
-                return List.of(Map.entry(nivelProva, n));
+            default:
+                // fallback bem defensivo (não deve chegar aqui)
+                return java.util.List.of(java.util.Map.entry(null, n));
         }
+
     }
 
     // para o PREDEFINIDO: 20% fácil, 60% moderada, 20% difícil

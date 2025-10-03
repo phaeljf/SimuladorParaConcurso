@@ -67,7 +67,7 @@ public class ProfProvasController {
         var prof = sess(session);
         if (prof == null) return "redirect:/prof/login";
         model.addAttribute("areas", areaRepo.findAll()); // filtros do painel de busca
-        return "prof/provas/form";
+        return "prof/provas/provas-form";
     }
 
     @PostMapping("/nova")
@@ -117,7 +117,7 @@ public class ProfProvasController {
                 .stream().map(pq -> pq.getQuestao().getId()).toList();
         model.addAttribute("pvItens", idsOrdenados);
 
-        return "prof/provas/form";
+        return "prof/provas/provas-form";
     }
 
     @PostMapping("/{id}/editar")

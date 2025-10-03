@@ -148,7 +148,7 @@
                th:value="${q.alternativaE}"
                oninput="toggleRadio('correta_edit_E', this.value)">
         <div class="input-group-text">
-          <input class="form-check-input mt-0" type="radio" name="correta" id="correta_edit_E" value="E"
+          <input class="form-check-input mt-0" type="radio" name="correta" id="correta_edit_E" value="E" required
                  th:disabled="${#strings.isEmpty(q.alternativaE)}"
                  th:checked="${#strings.equalsIgnoreCase(q.correta + '', 'E')}">
           <label class="ms-1" for="correta_edit_E">Correta</label>
@@ -182,32 +182,6 @@
         <option th:each="a : ${areas}" th:value="${a.id}" th:text="${a.nome}"></option>
       </select>
     </div>
-
-    <!-- depois do bloco Área (dentro do form de nova) -->
-
-    <!-- NOVO: Dificuldade -->
-    <div class="col-12 col-md-6">
-      <label class="form-label">Dificuldade</label>
-      <select class="form-select" name="dificuldade" required>
-        <option value="" selected disabled>Selecione…</option>
-        <option value="FACIL">Fácil</option>
-        <option value="MODERADA">Moderada</option>
-        <option value="DIFICIL">Difícil</option>
-      </select>
-    </div>
-
-    <!-- NOVO: Escolaridade -->
-    <div class="col-12 col-md-6">
-      <label class="form-label">Escolaridade</label>
-      <select class="form-select" name="escolaridade" required>
-        <option value="" selected disabled>Selecione…</option>
-        <option value="FUNDAMENTAL">Fundamental</option>
-        <option value="MEDIO">Médio</option>
-        <option value="SUPERIOR">Superior</option>
-      </select>
-    </div>
-
-    <!-- depois do bloco Área (dentro do form de nova) -->
 
     <!-- NOVO: Dificuldade -->
     <div class="col-12 col-md-6">

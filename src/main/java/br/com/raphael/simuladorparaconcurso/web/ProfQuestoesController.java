@@ -48,21 +48,23 @@ public class ProfQuestoesController {
     // ========= util =========
 
     /** Recupera o professor da sessão (ou null se não logado). */
-    private ProfSessao profFrom(HttpSession session) {
-        return (ProfSessao) session.getAttribute("PROF_AUTH");
+    private ProfSessao profFrom(HttpSession s) {
+        return (ProfSessao) s.getAttribute("PROF_AUTH");
     }
 
     /** Se não logado, redireciona para login; caso contrário, retorna null. */
-    private String requireLogin(ProfSessao prof) {
-        return (prof == null ? "redirect:/prof/login" : null);
+    private String requireLogin(ProfSessao p) {
+        return (p == null ? "redirect:/prof/login" : null);
     }
 
     /** Valida os campos obrigatórios da questão e se 'correta' está entre A..E. */
-    private String validar(String enunciado, String a, String b, String c, String d, String correta) {
+    private String validar(String enunciado,
+                           String a, String b, String c, String d, String e,
+                           String correta) {
         if (!StringUtils.hasText(enunciado)) return "Informe o enunciado.";
-        if (!StringUtils.hasText(a) || !StringUtils.hasText(b) || !StringUtils.hasText(c) || !StringUtils.hasText(d)) {
-            return "Preencha as alternativas A, B, C e D.";
-        }
+        if (!StringUtils.hasText(a) || !StringUtils.hasText(b) ||
+                !StringUtils.hasText(c) || !StringUtils.hasText(d) ||
+                !StringUtils.hasText(e)) return "Preencha as alternativas A, B, C, D e E.";
         if (!StringUtils.hasText(correta)) return "Selecione a alternativa correta.";
         String cor = correta.trim().toUpperCase();
         if (!cor.matches("^[A-E]$")) return "A alternativa correta deve ser A, B, C, D ou E.";
@@ -71,10 +73,7 @@ public class ProfQuestoesController {
 
     // ========= listar =========
 
-    /**
-     * Lista as últimas 50 questões do professor autenticado.
-     * View: templates/prof/questoes/minhasquestoes.html
-     */
+    //Lista as últimas 50 questões do professor autenticado.
     @GetMapping({"/minhas", "/minhasquestoes"})
     public String minhas(@RequestParam(required = false) String q,
                          @RequestParam(required = false) Long areaId,
@@ -82,32 +81,31 @@ public class ProfQuestoesController {
                          @RequestParam(defaultValue = "20") int size,
                          Model model, HttpSession session) {
 
-        ProfSessao prof = (ProfSessao) session.getAttribute("PROF_AUTH");
+        ProfSessao prof = profFrom(session);
         if (prof == null) return "redirect:/prof/login";
 
-        var pageable = org.springframework.data.domain.PageRequest.of(
-                Math.max(page, 0),
-                Math.min(Math.max(size, 1), 50)
-        );
+        var pageable = PageRequest.of(Math.max(page, 0), Math.min(Math.max(size, 1), 50));
+
+        var hasQ = (q != null && !q.isBlank());
+        var hasArea = (areaId != null);
 
         org.springframework.data.domain.Page<Questao> pagina;
-
-        boolean hasQ = (q != null && !q.isBlank());
-        boolean hasArea = (areaId != null);
-
         if (hasQ && hasArea) {
-            pagina = questaoRepo.findByAutorIdAndAtivoTrueAndAreaConhecimentoIdAndEnunciadoContainingIgnoreCaseOrderByIdDesc(prof.id(), areaId, q.trim(), pageable);
+            pagina = questaoRepo.findByAutorIdAndAtivoTrueAndAreaConhecimentoIdAndEnunciadoContainingIgnoreCaseOrderByIdDesc(
+                    prof.id(), areaId, q.trim(), pageable);
         } else if (hasQ) {
-            pagina = questaoRepo.findByAutorIdAndAtivoTrueAndEnunciadoContainingIgnoreCaseOrderByIdDesc(prof.id(), q.trim(), pageable);
+            pagina = questaoRepo.findByAutorIdAndAtivoTrueAndEnunciadoContainingIgnoreCaseOrderByIdDesc(
+                    prof.id(), q.trim(), pageable);
         } else if (hasArea) {
-            pagina = questaoRepo.findByAutorIdAndAtivoTrueAndAreaConhecimentoIdOrderByIdDesc(prof.id(), areaId, pageable);
+            pagina = questaoRepo.findByAutorIdAndAtivoTrueAndAreaConhecimentoIdOrderByIdDesc(
+                    prof.id(), areaId, pageable);
         } else {
             pagina = questaoRepo.findByAutorIdAndAtivoTrueOrderByIdDesc(prof.id(), pageable);
         }
 
         model.addAttribute("areas", areaRepo.findAll());
         model.addAttribute("pagina", pagina);
-        model.addAttribute("lista", pagina.getContent()); // reaproveita o que já existia
+        model.addAttribute("lista", pagina.getContent());
         model.addAttribute("f_q", q);
         model.addAttribute("f_areaId", areaId);
         return "prof/questoes/minhasquestoes";
@@ -117,7 +115,7 @@ public class ProfQuestoesController {
 
     /**
      * Formulário de nova questão.
-     * View: templates/prof/questoes/form.html
+     * View: templates/prof/questoes/prof-provas-questoes-form.html
      */
     @GetMapping("/nova")
     public String formNova(Model model, HttpSession session) {
@@ -125,32 +123,30 @@ public class ProfQuestoesController {
         String redirect = requireLogin(prof);
         if (redirect != null) return redirect;
 
-        model.addAttribute("areas", areaRepo.findAll()); // usa o que você tem hoje
-        return "prof/questoes/form";
+        model.addAttribute("questao", new Questao()); // <-- IMPORTANTE para o th:object
+        model.addAttribute("areas", areaRepo.findAll());
+        return "prof/questoes/questoes-form";
     }
 
-    /**
-     * Recebe e salva nova questão.
-     * Após sucesso redireciona para "Minhas Questões".
-     */
     @PostMapping("/nova")
     public String salvarNova(@RequestParam Long areaId,
+                             @RequestParam(required = false) String titulo,
                              @RequestParam String enunciado,
                              @RequestParam String alternativaA,
                              @RequestParam String alternativaB,
                              @RequestParam String alternativaC,
                              @RequestParam String alternativaD,
-                             @RequestParam(required = false) String alternativaE,
+                             @RequestParam String alternativaE,              // agora obrigatório
                              @RequestParam String correta,
                              @RequestParam(name = "publica", defaultValue = "false") boolean publica,
                              HttpSession session,
-                             RedirectAttributes ra,
-                             Model model) {
+                             RedirectAttributes ra) {
+
         ProfSessao prof = profFrom(session);
         String redirect = requireLogin(prof);
         if (redirect != null) return redirect;
 
-        String erro = validar(enunciado, alternativaA, alternativaB, alternativaC, alternativaD, correta);
+        String erro = validar(enunciado, alternativaA, alternativaB, alternativaC, alternativaD, alternativaE, correta);
         if (erro != null) {
             ra.addFlashAttribute("erro", erro);
             return "redirect:/prof/questoes/nova";
@@ -166,6 +162,7 @@ public class ProfQuestoesController {
 
         Questao q = new Questao();
         q.setAreaConhecimento(areaOpt.get());
+        q.setTitulo(titulo);                 // opcional
         q.setEnunciado(enunciado);
         q.setAlternativaA(alternativaA);
         q.setAlternativaB(alternativaB);
@@ -174,14 +171,13 @@ public class ProfQuestoesController {
         q.setAlternativaE(alternativaE);
         q.setCorreta(letraCorreta);
         q.setPublica(publica);
-        q.setAutorId(prof.id()); // ProfSessao é record → id()
+        q.setAutorId(prof.id());
 
         try {
             questaoRepo.save(q);
             ra.addFlashAttribute("ok", "Questão cadastrada com sucesso!");
             return "redirect:/prof/questoes/minhas";
         } catch (Exception ex) {
-            // Pode ser violação de unicidade (area_id, enunciado)
             ra.addFlashAttribute("erro", "Não foi possível salvar. Verifique se já não existe questão igual nesta área.");
             return "redirect:/prof/questoes/nova";
         }
@@ -191,41 +187,39 @@ public class ProfQuestoesController {
 
     /**
      * Formulário de edição (somente autor).
-     * View: templates/prof/questoes/form.html (reutiliza; no template use 'q' para preencher os campos)
+     * View: templates/prof/questoes/prof-provas-questoes-form.html (reutiliza; no template use 'q' para preencher os campos)
      */
     @GetMapping("/{id}/editar")
     public String formEditar(@PathVariable Long id, HttpSession session, Model model, RedirectAttributes ra) {
-        ProfSessao prof = profFrom(session);
-        String redirect = requireLogin(prof);
-        if (redirect != null) return redirect;
+        var prof = (ProfSessao) session.getAttribute("PROF_AUTH");
+        if (prof == null) return "redirect:/prof/login";
 
-        Optional<Questao> opt = questaoRepo.findById(id);
+        var opt = questaoRepo.findById(id);
         if (opt.isEmpty() || !opt.get().isAtivo() || !opt.get().getAutorId().equals(prof.id())) {
             ra.addFlashAttribute("erro", "Questão não encontrada ou não pertence a você.");
             return "redirect:/prof/questoes/minhas";
         }
 
-        model.addAttribute("q", opt.get());
+        model.addAttribute("q", opt.get());          // <-- tem que ser "q"
         model.addAttribute("areas", areaRepo.findAll());
-        return "prof/questoes/form";
+        return "prof/questoes/questoes-form";        // <-- caminho da view
     }
 
-    /**
-     * Salva edição de questão (somente autor).
-     */
     @PostMapping("/{id}/editar")
     public String salvarEditar(@PathVariable Long id,
                                @RequestParam Long areaId,
+                               @RequestParam(required = false) String titulo,
                                @RequestParam String enunciado,
                                @RequestParam String alternativaA,
                                @RequestParam String alternativaB,
                                @RequestParam String alternativaC,
                                @RequestParam String alternativaD,
-                               @RequestParam(required = false) String alternativaE,
+                               @RequestParam String alternativaE,
                                @RequestParam String correta,
                                @RequestParam(name = "publica", defaultValue = "false") boolean publica,
                                HttpSession session,
                                RedirectAttributes ra) {
+
         ProfSessao prof = profFrom(session);
         String redirect = requireLogin(prof);
         if (redirect != null) return redirect;
@@ -236,7 +230,7 @@ public class ProfQuestoesController {
             return "redirect:/prof/questoes/minhas";
         }
 
-        String erro = validar(enunciado, alternativaA, alternativaB, alternativaC, alternativaD, correta);
+        String erro = validar(enunciado, alternativaA, alternativaB, alternativaC, alternativaD, alternativaE, correta);
         if (erro != null) {
             ra.addFlashAttribute("erro", erro);
             return "redirect:/prof/questoes/" + id + "/editar";
@@ -250,6 +244,7 @@ public class ProfQuestoesController {
 
         Questao q = opt.get();
         q.setAreaConhecimento(areaOpt.get());
+        q.setTitulo(titulo);
         q.setEnunciado(enunciado);
         q.setAlternativaA(alternativaA);
         q.setAlternativaB(alternativaB);
@@ -268,6 +263,7 @@ public class ProfQuestoesController {
             return "redirect:/prof/questoes/" + id + "/editar";
         }
     }
+
 
     // ========= excluir =========
 
@@ -293,9 +289,8 @@ public class ProfQuestoesController {
     }
 
 
-    /**
-     * Buscar elementos do repositorio
-     */
+// -------- buscar (API interna p/ grid) --------
+
     @GetMapping("/buscar")
     public Map<String,Object> buscar(@RequestParam(required=false) String q,
                                      @RequestParam(required=false) Long areaId,
@@ -304,7 +299,8 @@ public class ProfQuestoesController {
                                      @RequestParam(defaultValue="0") int page,
                                      @RequestParam(defaultValue="10") int size,
                                      HttpSession session) {
-        var sess = (ProfSessao) session.getAttribute("PROF_AUTH");
+
+        var sess = profFrom(session);
         if (sess == null) return Map.of("content", java.util.List.of(), "totalPages", 0, "number", 0);
 
         var pg = questaoRepo.buscarParaProva(
@@ -316,7 +312,7 @@ public class ProfQuestoesController {
         var content = pg.getContent().stream().map((Questao qq) -> Map.of(
                 "id", qq.getId(),
                 "area", (qq.getAreaConhecimento() != null ? qq.getAreaConhecimento().getNome() : "Sem área"),
-                "publica", Boolean.TRUE.equals(qq.getPublica()), // << aqui
+                "publica", Boolean.TRUE.equals(qq.getPublica()),
                 "enunciado", qq.getEnunciado()
         )).toList();
 

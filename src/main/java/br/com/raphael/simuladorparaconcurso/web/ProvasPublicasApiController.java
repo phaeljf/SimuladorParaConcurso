@@ -19,7 +19,7 @@ public class ProvasPublicasApiController {
     @GetMapping("/search")
     public List<ProvaResumoDTO> search(@RequestParam(required = false) String q) {
         var limit = PageRequest.of(0, 6); // limita as sugestões do index
-        return provaRepo.searchPublicasPorTitulo(q, limit)
+        return provaRepo.buscarPublicasPorNomeOuProfessor(q, limit)
                 .stream().map(ProvaResumoDTO::of).toList();
     }
 

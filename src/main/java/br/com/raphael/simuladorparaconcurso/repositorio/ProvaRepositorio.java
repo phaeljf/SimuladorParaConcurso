@@ -8,18 +8,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
-import org.springframework.data.domain.Pageable;
 
 public interface ProvaRepositorio extends JpaRepository<Prova, Long> {
-    List<Prova> findByCriadoPorIdOrderByCriadoEmDesc(Long profId);
-    Optional<Prova> findByIdAndCriadoPorId(Long id, Long profId);
-
-    Page<Prova> findByCriadoPorIdOrderByCriadoEmDesc(Long profId, Pageable pageable);
-    Page<Prova> findByCriadoPorIdAndTituloContainingIgnoreCaseOrderByCriadoEmDesc(Long profId, String titulo, Pageable pageable);
-
-    List<Prova> findByCriadoPorIdAndAtivoTrueOrderByCriadoEmDesc(Long profId);
 
     Page<Prova> findByCriadoPorIdAndAtivoTrueOrderByCriadoEmDesc(Long profId, Pageable pageable);
 
@@ -30,14 +20,19 @@ public interface ProvaRepositorio extends JpaRepository<Prova, Long> {
 
     // Busca rápida para o index (por título)
     @Query("""
-              select p
-              from Prova p
-              where p.publica = true
-                and p.ativo = true
-                and (:q is null or :q = '' or lower(p.titulo) like lower(concat('%', :q, '%')))
-              order by p.titulo asc
-            """)
-    List<Prova> searchPublicasPorTitulo(@Param("q") String q, Pageable pageable);
+       select p
+       from Prova p
+       join p.criadoPor pr
+       where p.publica = true
+         and p.ativo   = true
+         and (
+              :q is null or :q = ''
+              or lower(p.titulo) like lower(concat('%', :q, '%'))
+              or lower(pr.nome)  like lower(concat('%', :q, '%'))
+         )
+       order by p.titulo asc
+       """)
+    List<Prova> buscarPublicasPorNomeOuProfessor(@Param("q") String q, Pageable pageable);
 
     // Pesquisa avançada (título, professor, área)
     @Query("""

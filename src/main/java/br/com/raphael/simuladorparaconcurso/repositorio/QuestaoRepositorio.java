@@ -20,18 +20,6 @@ public interface QuestaoRepositorio extends JpaRepository<Questao, Long> {
 
 
     /* ==== SORTEIO (para montar prova/simulado) ==== */
-
-    // Sorteio simples por área (sem filtros)
-    @Query(value = """
-        SELECT * FROM questoes
-         WHERE ativo = true AND publica = true
-           AND area_id = :areaId
-         ORDER BY random()
-         LIMIT :n
-    """, nativeQuery = true)
-    List<Questao> buscarAleatoriasPorArea(@Param("areaId") Long areaId,
-                                          @Param("n") int n);
-
     // Sorteio por área + filtros (qualquer um pode ser nulo → ignora)
     @Query(value = """
         SELECT * FROM questoes

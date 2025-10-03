@@ -79,7 +79,11 @@ public class SimuladoControlador {
         if (mapa.isEmpty()) return "redirect:/";
 
         // sorteia e monta (AGORA passando filtros)
-        List<QuestaoExibicao> questoes = simuladoServico.montarSimulado(mapa, dificuldade, escolaridade);
+        //List<QuestaoExibicao> questoes = simuladoServico.montarSimulado(mapa, dificuldade, escolaridade);
+
+        // modo simplificado: sem filtrar por dificuldade/escolaridade
+        List<QuestaoExibicao> questoes = simuladoServico.montarSimulado(mapa);
+
 
         // escolhas legíveis
         List<EscolhaArea> escolhas = new ArrayList<>();

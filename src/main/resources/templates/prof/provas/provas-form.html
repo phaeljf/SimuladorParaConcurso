@@ -73,7 +73,7 @@
       <button type="button" class="btn btn-outline-secondary" id="btnLimparSelE">Limpar seleção</button>
     </div>
 
-    <!-- Painel de busca (inline, sem <form> interno) -->
+    <!-- Painel de busca (inline) -->
     <div id="painelBuscaE" class="card mt-3 d-none">
       <div class="card-body">
         <div class="d-flex justify-content-between align-items-center mb-2">
@@ -83,40 +83,40 @@
             <button type="button" class="btn btn-outline-secondary btn-sm" id="btnFecharBuscaE">Fechar</button>
           </div>
         </div>
-
-        <div id="fBuscaQE" class="row g-2 align-items-end mb-3">
-          <div class="col-12 col-md-5">
+        <div id="fBuscaQE" class="row g-1 align-items-start mb-3">
+          <div class="col-12 col-md-3">
             <label class="form-label">Texto</label>
             <input class="form-control" id="buscarTextoE" placeholder="digite para filtrar...">
           </div>
-          <div class="col-12 col-md-3">
+
+          <div class="col-12 col-md-2">
             <label class="form-label">Área</label>
             <select class="form-select" id="buscarAreaE">
               <option value="">Todas</option>
               <option th:each="a : ${areas}" th:value="${a.id}" th:text="${a.nome}">Área</option>
             </select>
           </div>
-          <div class="col-12 col-md-3">
+          <div class="col-12 col-md-2">
             <label class="form-label">Dificuldade</label>
             <select class="form-select" id="buscarDificuldadeE">
               <option value="">Todas</option>
-              <option value="FACIL">Fácil</option>
-              <option value="MODERADA">Moderada</option>
-              <option value="DIFICIL">Difícil</option>
+              <option value="Facil">Fácil</option>
+              <option value="Moderada">Moderada</option>
+              <option value="Dificil">Difícil</option>
             </select>
           </div>
-          <div class="col-12 col-md-3">
+          <div class="col-12 col-md-2">
             <label class="form-label">Escolaridade</label>
             <select class="form-select" id="buscarEscolaridadeE">
               <option value="">Todas</option>
-              <option value="FUNDAMENTAL">Fundamental</option>
-              <option value="MEDIO">Médio</option>
-              <option value="SUPERIOR">Superior</option>
+              <option value="Fundamental">Fundamental</option>
+              <option value="Medio">Médio</option>
+              <option value="Superior">Superior</option>
             </select>
           </div>
-          <div class="col-12 col-md-4">
-            <label class="form-label">Origem</label>
-            <div class="d-flex align-items-center gap-3 mt-1">
+          <div class="col-12 col-md-3">
+            <label class="form-label align-top">Origem</label>
+            <div class="d-flex align-items-center gap-3 mt-2">
               <label class="form-check-label">
                 <input class="form-check-input me-1" type="checkbox" id="buscarMinhasE" checked> Minhas
               </label>

@@ -13,10 +13,10 @@
 <!-- Navbar simples, combinando com a landing -->
 <nav class="navbar navbar-dark bg-dark">
   <div class="container px-4 px-lg-5">
-    <a class="navbar-brand d-flex align-items-center" th:href="@{/}">
-      <img class="brand-logo me-2" th:src="@{/assets/img/logo.png}" alt="Simulado Online">
-      <span>Simulado Online</span>
-    </a>
+      <a class="navbar-brand" th:href="@{/}">
+          <img th:src="@{/assets/img/icon.ico}" alt="Logo" class="brand-logo">
+          Simulado Online
+      </a>
   </div>
 </nav>
 
@@ -39,8 +39,8 @@
             <div class="col-12">
               <label class="form-label">Tempo (opcional)</label>
               <div class="field-inline">
-                <input type="number" name="horas" min="0" value="0" class="form-control w-time" placeholder="Horas">
-                <input type="number" name="minutos" min="0" max="59" value="0" class="form-control w-time" placeholder="Minutos">
+                <input type="number" name="horas" min="0" class="form-control w-time" placeholder="Horas">
+                <input type="number" name="minutos" min="0" max="59" class="form-control w-time" placeholder="Minutos">
               </div>
               <div class="form-text">Use 0 para <b>sem limite</b>.</div>
             </div>
@@ -69,35 +69,33 @@
               <div class="form-text mt-2">Deixe 0 para não incluir uma área.</div>
             </div>
 
-            <!-- NOVO: Dificuldade do simulado -->
+            <!-- Dificuldade (desabilitada por enquanto) -->
             <div class="col-12 col-md-6">
-              <label class="form-label">Dificuldade</label>
-              <select class="form-select" name="dificuldade">
-                <option value="">Predefinido (20% Fácil, 60% Moderada, 20% Difícil)</option>
-                <option value="FACIL">Fácil</option>
-                <option value="MODERADA">Moderada</option>
-                <option value="DIFICIL">Difícil</option>
+              <label class="form-label">Dificuldade <span class="text-muted">(em breve)</span></label>
+              <select class="form-select" name="dificuldade" disabled>
+                  <option value="">Predefinido*</option>
+                  <option value="FACIL">Fácil</option>
+                  <option value="MODERADA">Moderada</option>
+                  <option value="DIFICIL">Difícil</option>
               </select>
-              <div class="form-text">Deixe em branco para usar o esquema 20/60/20.</div>
+              <div class="form-text">Desabilitado temporariamente.</div>
             </div>
 
-            <!-- NOVO: Escolaridade da prova (nível) -->
+            <!-- Escolaridade (desabilitada por enquanto) -->
             <div class="col-12 col-md-6">
-              <label class="form-label">Escolaridade</label>
-              <select class="form-select" name="escolaridade">
-                <option value="">Todas</option>
-                <option value="FUNDAMENTAL">Fundamental</option>
-                <option value="MEDIO">Médio</option>
-                <option value="SUPERIOR">Superior</option>
+              <label class="form-label">Escolaridade <span class="text-muted">(em breve)</span></label>
+              <select class="form-select" name="escolaridade" disabled>
+                  <option value="">Todas</option>
+                  <option value="FUNDAMENTAL">Fundamental</option>
+                  <option value="MEDIO">Médio</option>
+                  <option value="SUPERIOR">Superior</option>
               </select>
-              <div class="form-text">
-                Ex.: Médio → ~90% médio e ~10% fundamental; Superior → ~60% superior e ~40% médio.
-              </div>
+              <div class="form-text">Desabilitado temporariamente.</div>
             </div>
 
             <!-- Ações -->
             <div class="col-12 d-flex justify-content-between pt-2">
-              <a class="btn btn-outline-dark" th:href="@{/}">← Voltar</a>
+              <a class="btn btn-primary btn-lg px-4 " th:href="@{/}">Voltar</a>
               <button type="submit" class="btn btn-primary btn-lg px-4">
                 Iniciar simulado
               </button>

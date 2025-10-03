@@ -28,7 +28,7 @@ public class ProfPerfilController {
         if (prof == null) return "redirect:/prof/login";
         Professor p = professorRepo.findById(prof.id()).orElseThrow();
         model.addAttribute("p", p);
-        return "prof/perfil/form";
+        return "prof/perfil/prof-form";
     }
 
     @PostMapping("/salvar")

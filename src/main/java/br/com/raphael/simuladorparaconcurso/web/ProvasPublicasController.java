@@ -18,7 +18,7 @@ public class ProvasPublicasController {
     private final ProvaQuestaoRepositorio pqRepo;
     private final SimuladoServico simuladoServico;
 
-    // ... seu GET /provas/{id} (detalhe) fica como está ...
+
 
 }
 

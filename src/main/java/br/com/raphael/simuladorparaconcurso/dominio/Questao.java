@@ -11,12 +11,16 @@ import java.util.List;
 @Table(name = "questoes")
 @Getter @Setter
 public class Questao {
+
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "area_id")
     private AreaConhecimento areaConhecimento;
+
+    @Column(name = "titulo", length = 200)
+    private String titulo;
 
     @Column(nullable = false, columnDefinition = "text")
     private String enunciado;
@@ -33,7 +37,7 @@ public class Questao {
     @Column(name = "alternativa_d", nullable = false)
     private String alternativaD;
 
-    @Column(name = "alternativa_e") // novo
+    @Column(name = "alternativa_e", nullable = false) // novo
     private String alternativaE;
 
     @Column(name = "correta", nullable = false, length = 1)
@@ -58,13 +62,16 @@ public class Questao {
 
     @PrePersist @PreUpdate
     private void normalize() {
-        if (enunciado != null)      enunciado   = enunciado.trim();
-        if (alternativaA != null)   alternativaA = alternativaA.trim();
-        if (alternativaB != null)   alternativaB = alternativaB.trim();
-        if (alternativaC != null)   alternativaC = alternativaC.trim();
-        if (alternativaD != null)   alternativaD = alternativaD.trim();
+        if (titulo != null)        titulo = titulo.trim();
+        if (enunciado != null)     enunciado = enunciado.trim();
+        if (alternativaA != null)  alternativaA = alternativaA.trim();
+        if (alternativaB != null)  alternativaB = alternativaB.trim();
+        if (alternativaC != null)  alternativaC = alternativaC.trim();
+        if (alternativaD != null)  alternativaD = alternativaD.trim();
+        if (alternativaE != null)  alternativaE = alternativaE.trim(); // <-
         this.correta = Character.toUpperCase(this.correta);
     }
+
 
     // ...
     @Column(nullable = false)
