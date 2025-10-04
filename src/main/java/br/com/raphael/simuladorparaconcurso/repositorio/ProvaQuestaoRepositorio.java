@@ -21,15 +21,20 @@ public interface ProvaQuestaoRepositorio extends JpaRepository<ProvaQuestao, Lon
     boolean existsByProvaIdAndQuestaoId(Long provaId, Long questaoId);
 
     @Query("""
-              select new br.com.raphael.simuladorparaconcurso.web.dto.AreaQtdDTO(
-                  a.id, coalesce(a.nome, 'Sem área'), count(q.id)
-              )
-              from ProvaQuestao pq
-              join pq.questao q
-              left join q.areaConhecimento a
-              where pq.prova.id = :provaId
-              group by a.id, a.nome
-              order by coalesce(a.nome, 'zzz')
-            """)
+       select new br.com.raphael.simuladorparaconcurso.web.dto.AreaQtdDTO(
+                q.areaConhecimento.id,
+                q.areaConhecimento.nome,
+                q.areaConhecimento.descricao,
+                count(pq)
+       )
+       from ProvaQuestao pq
+         join pq.questao q
+       where pq.prova.id = :provaId
+       group by q.areaConhecimento.id, q.areaConhecimento.nome, q.areaConhecimento.descricao
+       order by q.areaConhecimento.nome
+       """)
     List<AreaQtdDTO> contagemPorArea(@Param("provaId") Long provaId);
+
+
+
 }

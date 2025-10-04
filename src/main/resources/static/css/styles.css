@@ -11207,6 +11207,74 @@ body, .hero, .wrapper, .page-bg { background-image: none !important; background-
 
 /* Largura do campo “Qtd.” por área */
 .w-qty {
-    width: 110px;
-    flex: 0 0 auto;
+    width: 72px;           /* menor que antes */
+    text-align: center;    /* número centralizado */
+    padding-right: .4rem;
+    padding-left: .4rem;
 }
+
+
+.area-row {
+    gap: .75rem; /* aproxima input e badge */
+}
+
+
+/* Input do Configurar quantidade de questoes */
+.badge-available {
+    background-color: var(--bs-primary); /* mesma cor do btn-primary */
+    --bs-bg-opacity: 1;
+    --bs-badge-padding-x: 0.65em;
+    --bs-badge-padding-y: 0.35em;
+    --bs-badge-font-size: 0.75em;
+    --bs-badge-font-weight: 700;
+    --bs-badge-color: #fff;
+    --bs-badge-border-radius: 0.375rem;
+    display: inline-block;
+    padding: var(--bs-badge-padding-y) var(--bs-badge-padding-x);
+    font-size: var(--bs-badge-font-size);
+    font-weight: var(--bs-badge-font-weight);
+    line-height: 1;
+    color: var(--bs-badge-color);
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: baseline;
+    border-radius: var(--bs-badge-border-radius);
+}
+
+/* STYLE QUE ESTAVA ABULSO NO EXAM*/
+
+ :root{
+     --bs-primary:#0b2a5b; /* azul escuro */
+     --bs-success:#28a745; /* verde de acerto */
+ }
+body{
+    min-height:100vh;
+    background:
+            radial-gradient(1200px 600px at 10% -20%, rgba(11,42,91,.08), transparent 60%),
+            radial-gradient(1200px 600px at 110% 120%, rgba(11,42,91,.08), transparent 60%),
+            #f7f9fc;
+}
+.card-glass{
+    background: rgba(255,255,255,.94);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    border: 1px solid rgba(11,42,91,.06);
+    box-shadow: 0 10px 30px rgba(11,42,91,.08);
+}
+.brand-logo{height:32px}
+.alt-item input[type="radio"]{display:none}
+.alt-item label{
+    width:100%;
+    cursor:pointer;
+    padding:.9rem 1rem;
+    border:1px solid #e5e7eb;
+    border-radius:.5rem;
+    background:#fff;
+    transition:.15s ease-in-out;
+}
+.alt-item + .alt-item{margin-top:.75rem}
+.alt-item input[type="radio"]:checked + label{
+    border-color: var(--bs-primary);
+    box-shadow: 0 0 0 .2rem rgba(11,42,91,.15);
+}
+.kbd{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,"Liberation Mono","Courier New", monospace; background:#eef1f4; border-radius:.35rem; padding:.1rem .45rem}

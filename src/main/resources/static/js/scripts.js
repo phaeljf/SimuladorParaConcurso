@@ -478,3 +478,39 @@ document.getElementById('btnAbrirBuscaC')?.addEventListener('click', () => {
     carregarBuscaC(0);
 });
 
+
+
+// === Configurar Simulado: limitar quantidade ao disponível ===
+(function () {
+    // só roda na página com o form de iniciar
+    const form = document.querySelector('form[action="/iniciar"]');
+    if (!form) return;
+
+    const qtyInputs = form.querySelectorAll('input[name="quantidade"]');
+
+    // enquanto digita, mantém entre 0 e data-max
+    qtyInputs.forEach(inp => {
+        const max = parseInt(inp.dataset.max || '0', 10);
+
+        inp.addEventListener('input', () => {
+            let v = parseInt(inp.value || '0', 10);
+            if (Number.isNaN(v) || v < 0) v = 0;
+            if (v > max) v = max;
+            inp.value = v;
+        });
+    });
+
+    // última checagem antes de enviar
+    form.addEventListener('submit', (e) => {
+        let ok = true;
+        qtyInputs.forEach(inp => {
+            const max = parseInt(inp.dataset.max || '0', 10);
+            const v = parseInt(inp.value || '0', 10);
+            if (v > max) {
+                inp.reportValidity?.();
+                ok = false;
+            }
+        });
+        if (!ok) e.preventDefault();
+    });
+})();

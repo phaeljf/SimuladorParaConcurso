@@ -1,4 +1,6 @@
 package br.com.raphael.simuladorparaconcurso.repositorio;
+import br.com.raphael.simuladorparaconcurso.dominio.Dificuldade;
+import br.com.raphael.simuladorparaconcurso.dominio.Escolaridade;
 import br.com.raphael.simuladorparaconcurso.dominio.Questao;
 import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
@@ -17,7 +19,6 @@ public interface QuestaoRepositorio extends JpaRepository<Questao, Long> {
 
     // (Opcional) contagem por área (alguns fluxos usam)
     int countByAreaConhecimentoIdAndAtivoTrue(Long areaId);
-
 
     /* ==== SORTEIO (para montar prova/simulado) ==== */
     // Sorteio por área + filtros (qualquer um pode ser nulo → ignora)

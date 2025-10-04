@@ -6,45 +6,6 @@
   <title>Simulado • Prova</title>
 
   <link rel="stylesheet" th:href="@{/css/styles.css}"/>
-
-  <!-- toques visuais para combinar com o configurar -->
-  <style>
-    :root{
-      --bs-primary:#0b2a5b; /* azul escuro */
-      --bs-success:#28a745; /* verde de acerto */
-    }
-    body{
-      min-height:100vh;
-      background:
-              radial-gradient(1200px 600px at 10% -20%, rgba(11,42,91,.08), transparent 60%),
-              radial-gradient(1200px 600px at 110% 120%, rgba(11,42,91,.08), transparent 60%),
-              #f7f9fc;
-    }
-    .card-glass{
-      background: rgba(255,255,255,.94);
-      backdrop-filter: blur(6px);
-      -webkit-backdrop-filter: blur(6px);
-      border: 1px solid rgba(11,42,91,.06);
-      box-shadow: 0 10px 30px rgba(11,42,91,.08);
-    }
-    .brand-logo{height:32px}
-    .alt-item input[type="radio"]{display:none}
-    .alt-item label{
-      width:100%;
-      cursor:pointer;
-      padding:.9rem 1rem;
-      border:1px solid #e5e7eb;
-      border-radius:.5rem;
-      background:#fff;
-      transition:.15s ease-in-out;
-    }
-    .alt-item + .alt-item{margin-top:.75rem}
-    .alt-item input[type="radio"]:checked + label{
-      border-color: var(--bs-primary);
-      box-shadow: 0 0 0 .2rem rgba(11,42,91,.15);
-    }
-    .kbd{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,"Liberation Mono","Courier New", monospace; background:#eef1f4; border-radius:.35rem; padding:.1rem .45rem}
-  </style>
 </head>
 <body>
 
@@ -110,13 +71,11 @@
               <input id="altC" type="radio" name="alternativa" value="C" th:checked="${q.escolhida=='C'}"/>
               <label for="altC"><b>C.</b> <span th:text="${q.c}">Alternativa C</span></label>
             </div>
-
-            <div class="alt-item mb-4">
+            <div class="alt-item">
               <input id="altD" type="radio" name="alternativa" value="D" th:checked="${q.escolhida=='D'}"/>
               <label for="altD"><b>D.</b> <span th:text="${q.d}">Alternativa D</span></label>
             </div>
-
-            <div class="alt-item mb-4" th:if="${q.e != null}">
+            <div class="alt-item mb-4">
               <input id="altE" type="radio" name="alternativa" value="E" th:checked="${q.escolhida=='E'}"/>
               <label for="altE"><b>E.</b> <span th:text="${q.e}">Alternativa E</span></label>
             </div>

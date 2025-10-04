@@ -50,24 +50,31 @@
               <label class="form-label">Áreas e quantidades</label>
 
               <div class="list-group">
-                <!-- uma linha por área -->
-                <div class="list-group-item d-flex align-items-center justify-content-between"
-                     th:each="a : ${areas}">
-                  <div class="me-3">
-                    <div class="fw-semibold" th:text="${a.nome}">Área</div>
-                    <small class="text-muted" th:text="${a.descricao}">Descrição</small>
-                  </div>
+                  <!-- uma linha por área -->
+                  <div class="list-group-item d-flex align-items-center justify-content-between"
+                       th:each="a : ${areas}">
+                      <div class="me-3">
+                          <div class="fw-semibold" th:text="${a.areaNome}">Área</div>
+                          <small class="text-muted d-block" th:text="${a.areaDescricao}">Descrição da área</small>
+                      </div>
 
-                  <div class="field-inline">
-                    <input type="hidden" name="areaId" th:value="${a.id}">
-                    <input type="number" name="quantidade" min="0" max="100" value="0"
-                           class="form-control w-qty" placeholder="Qtd.">
+                      <div class="area-row d-flex align-items-center">
+                          <input type="hidden" name="areaId" th:value="${a.areaId}">
+                          <input type="number" name="quantidade"
+                                 min="0"
+                                 class="form-control w-qty"
+                                 placeholder="Qtd."
+                                 value="0"
+                                 th:attr="max=${a.quantidade}, data-max=${a.quantidade}, data-area-id=${a.areaId}">
+                          <span class="badge-available" th:text="'Disp.: ' + ${a.quantidade}">Disp.: 0</span>
+                      </div>
                   </div>
-                </div>
               </div>
 
               <div class="form-text mt-2">Deixe 0 para não incluir uma área.</div>
             </div>
+
+
 
             <!-- Dificuldade (desabilitada por enquanto) -->
             <div class="col-12 col-md-6">

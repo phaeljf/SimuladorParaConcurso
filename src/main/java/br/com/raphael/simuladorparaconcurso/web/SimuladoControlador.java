@@ -6,9 +6,11 @@ import br.com.raphael.simuladorparaconcurso.modelo.*;
 import br.com.raphael.simuladorparaconcurso.repositorio.AreaConhecimentoRepositorio;
 import br.com.raphael.simuladorparaconcurso.repositorio.ProvaQuestaoRepositorio;
 import br.com.raphael.simuladorparaconcurso.repositorio.ProvaRepositorio;
+import br.com.raphael.simuladorparaconcurso.repositorio.QuestaoRepositorio;
 import br.com.raphael.simuladorparaconcurso.servico.SimuladoServico;
 import br.com.raphael.simuladorparaconcurso.servico.ServicoPdf;
 
+import br.com.raphael.simuladorparaconcurso.web.dto.AreaQtdDTO;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -42,6 +44,8 @@ public class SimuladoControlador {
     private final SimuladoServico simuladoServico;
     private final ProvaRepositorio provaRepositorio;
     private final ProvaQuestaoRepositorio provaQuestaoRepositorio;
+    private final QuestaoRepositorio questaoRepo;
+
     // PDF
     private final SpringTemplateEngine templateEngine;
     private final ServicoPdf servicoPdf;
@@ -49,9 +53,24 @@ public class SimuladoControlador {
     // Landing (lista de áreas para configurar)
     @GetMapping("/configurar")
     public String configurar(Model model) {
-        model.addAttribute("areas", areaRepo.findByAtivoTrueOrderByNomeAsc());
+        // 1) busca as áreas ativas (ajuste para seu finder real)
+        var areas = areaRepo.findByAtivoTrueOrderByNomeAsc();
+
+        // 2) monta DTO com a contagem
+        var areasQtd = areas.stream()
+                .map(a -> new AreaQtdDTO(
+                        a.getId(),
+                        a.getNome(),
+                        a.getDescricao(), // ← voltou a descrição
+                        (long) questaoRepo.countByAreaConhecimentoIdAndAtivoTrue(a.getId())
+                ))
+                .toList();
+
+        // 3) envia para o template exatamente com o nome que o HTML usa
+        model.addAttribute("areas", areasQtd);
         return "configurar";
     }
+
 
     @GetMapping("/")
     public String index() {
@@ -68,7 +87,8 @@ public class SimuladoControlador {
                           @RequestParam List<Integer> quantidade,
                           @RequestParam(required = false) Dificuldade dificuldade,
                           @RequestParam(required = false) Escolaridade escolaridade,
-                          HttpSession session) {
+                          HttpSession session,
+                          org.springframework.web.servlet.mvc.support.RedirectAttributes ra) {
 
         // (area -> quantidade) preservando ordem
         LinkedHashMap<Long, Integer> mapa = new LinkedHashMap<>();
@@ -78,12 +98,23 @@ public class SimuladoControlador {
         }
         if (mapa.isEmpty()) return "redirect:/";
 
-        // sorteia e monta (AGORA passando filtros)
-        //List<QuestaoExibicao> questoes = simuladoServico.montarSimulado(mapa, dificuldade, escolaridade);
+        // NOVO: validação de disponíveis por área
+        for (Map.Entry<Long, Integer> e : mapa.entrySet()) {
+            Long id = e.getKey();
+            int solicitadas = e.getValue();
+            int disponiveis = questaoRepo.countByAreaConhecimentoIdAndAtivoTrue(id);
+            if (solicitadas > disponiveis) {
+                ra.addFlashAttribute("erro",
+                        "Área " + id + ": solicitou " + solicitadas + " mas só há " + disponiveis + " disponíveis.");
+                return "redirect:/configurar";
+            }
+        }
 
-        // modo simplificado: sem filtrar por dificuldade/escolaridade
+        // sorteia e monta prova sem filtro
         List<QuestaoExibicao> questoes = simuladoServico.montarSimulado(mapa);
 
+        // sorteia e monta com filtros de dificuldade e escolaridade == EM BREVE
+        //List<QuestaoExibicao> questoes = simuladoServico.montarSimulado(mapa, dificuldade, escolaridade);
 
         // escolhas legíveis
         List<EscolhaArea> escolhas = new ArrayList<>();
