@@ -9,6 +9,7 @@ import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 @RequiredArgsConstructor
@@ -38,10 +39,14 @@ public class ProfAuthController {
         return "redirect:/prof";
     }
 
-    @PostMapping("/prof/logout")
-    public String logout(HttpSession session) {
+    @RequestMapping(
+            value = {"/logout", "/prof/logout"},
+            method = {RequestMethod.GET, RequestMethod.POST}
+    )
+    public String logout(HttpSession session, RedirectAttributes ra) {
         session.invalidate();
-        return "redirect:/";
+        ra.addFlashAttribute("msgOk", "Você saiu com sucesso.");
+        return "redirect:/"; // ou "redirect:/prof/login"
     }
 
     @GetMapping("/prof")
