@@ -253,36 +253,72 @@ public class SimuladoControlador {
 
 
     @GetMapping("/provas/{id}")
-    public String detalheProva(@PathVariable Long id, Model model) {
-        Prova prova = provaRepositorio.findById(id)
+    public String detalheProva(@PathVariable Long id,
+                               @RequestParam(name = "code", required = false) String code,
+                               HttpSession session,
+                               Model model) {
+
+        var prova = provaRepositorio.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Prova não encontrada"));
 
-        // Carrega itens da prova
-        List<ProvaQuestao> itens = provaQuestaoRepositorio.findByProvaId(id);
-        int total = itens.size();
+        boolean acesso = Boolean.TRUE.equals(prova.getPublica());
 
-        // Agrupa por área — detalhe.html espera 'areaNome' e 'quantidade'
-        Map<String, Long> porArea = itens.stream().collect(Collectors.groupingBy(
-                pq -> {
-                    var area = pq.getQuestao().getAreaConhecimento();
-                    return area != null ? area.getNome() : "Sem área";
-                },
-                LinkedHashMap::new,
-                Collectors.counting()
-        ));
+        // liberando via link: precisa estar habilitado, code bater e (se existir) não estar expirado
+        if (!acesso
+                && prova.isShareEnabled()
+                && code != null
+                && code.equals(prova.getShareCode())
+                && (prova.getShareExpiresAt() == null || Instant.now().isBefore(prova.getShareExpiresAt()))) {
 
-        record AreaResumo(String areaNome, int quantidade) {}
-        List<AreaResumo> areas = porArea.entrySet().stream()
-                .map(e -> new AreaResumo(e.getKey(), e.getValue().intValue()))
+            @SuppressWarnings("unchecked")
+            var granted = (Set<Long>) Optional.ofNullable(session.getAttribute("shareAccess"))
+                    .orElseGet(() -> { var s = new HashSet<Long>(); session.setAttribute("shareAccess", s); return s; });
+            granted.add(prova.getId());
+            acesso = true;
+        }
+
+        // se já ganhou “passe” na sessão (clicou no link antes), também libera
+        if (!acesso) {
+            @SuppressWarnings("unchecked")
+            var granted = (Set<Long>) session.getAttribute("shareAccess");
+            if (granted != null && granted.contains(prova.getId())) {
+                acesso = true;
+            }
+        }
+
+        if (!acesso) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Acesso não permitido");
+        }
+
+        // Carrega itens para mostrar “Distribuição por áreas” e total
+        var itens = provaQuestaoRepositorio.findByProvaId(id);
+
+        // total de questões
+        model.addAttribute("totalQuestoes", itens.size());
+
+        // monta lista de {areaNome, quantidade} ordenada por nome de área
+        var porArea = itens.stream()
+                .collect(java.util.stream.Collectors.groupingBy(
+                        it -> it.getQuestao().getAreaConhecimento().getNome(),
+                        java.util.stream.Collectors.counting()
+                ));
+
+        var areas = porArea.entrySet().stream()
+                .map(e -> {
+                    var m = new java.util.HashMap<String,Object>();
+                    m.put("areaNome", e.getKey());
+                    m.put("quantidade", e.getValue());
+                    return m;
+                })
+                .sorted(java.util.Comparator.comparing(m -> (String) m.get("areaNome")))
                 .toList();
 
-        model.addAttribute("pv", prova);
-        model.addAttribute("areas", areas);             // <- nomes do detalhe.html
-        model.addAttribute("totalQuestoes", total);
-        model.addAttribute("iniciarUrl", "/provas/" + id + "/exame/start");
+        model.addAttribute("areas", areas);
 
-        return "provas_publicas/detalhe";               // :contentReference[oaicite:2]{index=2}
+        model.addAttribute("pv", prova);
+        return "provas_publicas/detalhe";
     }
+
 
 
     @GetMapping("/provas/{id}/exame")
@@ -343,8 +379,17 @@ public class SimuladoControlador {
     public String iniciarProvaExistente(@PathVariable Long id,
                                         @RequestParam String nome,
                                         HttpSession session) {
+
         var prova = provaRepositorio.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Prova não encontrada"));
+
+        @SuppressWarnings("unchecked")
+        var granted = (java.util.Set<Long>) session.getAttribute("shareAccess");
+        boolean temPasse = (granted != null && granted.contains(prova.getId()));
+
+        if (!Boolean.TRUE.equals(prova.getPublica()) && !temPasse) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Acesso não permitido");
+        }
 
         var itens = provaQuestaoRepositorio.findByProvaId(id);
         if (itens == null || itens.isEmpty()) {
@@ -376,6 +421,28 @@ public class SimuladoControlador {
         session.setAttribute("sessaoSimulado", s);
         return "redirect:/simulado/q/1"; // reaproveita o mesmo exam.html
     }
+
+    @GetMapping("/provas/{id}/iniciar")
+    public String iniciarGet(@PathVariable Long id) {
+        return "redirect:/provas/" + id + "?erro=use_post";
+    }
+
+    // === ACESSO POR LINK COMPARTILHADO (SESSÃO) ===
+    @SuppressWarnings("unchecked")
+    private java.util.Set<Long> grantedIds(jakarta.servlet.http.HttpSession session) {
+        Object att = session.getAttribute("shareAccess");
+        if (att instanceof java.util.Set) return (java.util.Set<Long>) att;
+        java.util.Set<Long> novo = new java.util.HashSet<>();
+        session.setAttribute("shareAccess", novo);
+        return novo;
+    }
+
+    private boolean temAcesso(br.com.raphael.simuladorparaconcurso.dominio.Prova prova,
+                              jakarta.servlet.http.HttpSession session) {
+        if (java.lang.Boolean.TRUE.equals(prova.getPublica())) return true;
+        return grantedIds(session).contains(prova.getId());
+    }
+
 
 
 }

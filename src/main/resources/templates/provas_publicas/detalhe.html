@@ -57,21 +57,36 @@
           <div class="small text-muted mb-4" th:if="${totalQuestoes != null}">
             Total de questões: <strong th:text="${totalQuestoes}">0</strong>
           </div>
-          <div class="input-wrapper">
-            <input type="text" name="nome" class="input-wrapper input" required placeholder="Seu nome">
-          </div>
           <br>
-          <!-- ações -->
-          <div class="d-flex flex-column flex-sm-row gap-2 justify-content-between">
-            <a class="btn btn-outline-dark" th:href="@{/}">← Voltar</a>
+            <!-- ações -->
+            <div class="d-flex flex-column gap-2">
+                <form id="formIniciar"
+                      th:action="@{'/provas/' + ${pv.id} + '/iniciar'}"
+                      method="post"
+                      class="mt-2">
 
-            <!-- NOVO: form para pedir o nome antes de iniciar -->
-            <form th:action="@{'/provas/' + ${pv.id} + '/iniciar'}" method="post" class="d-flex gap-2">
+                    <div class="row g-2">
+                        <div class="col-12">
+                            <label class="form-label">Seu nome</label>
+                            <input name="nome" class="form-control form-control-lg" placeholder="Ex.: Ana Souza" required>
+                        </div>
 
-              <button type="submit" class="btn btn-primary">Iniciar a prova</button>
-            </form>
-          </div>
+                        <div class="col-6 d-grid mt-3">
+                            <a class="btn btn-outline-dark  w-100 d-flex justify-content-center align-items-center gap-2"
+                               th:href="@{/}">
+                                <span>Voltar</span>
+                            </a>
+                        </div>
 
+                        <div class="col-6 d-grid mt-3">
+                            <!-- ESTE botão envia o form #formIniciar -->
+                            <button type="submit" form="formIniciar" class="btn btn-primary  w-100">
+                                Iniciar a prova
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
         </div>
       </div>
 

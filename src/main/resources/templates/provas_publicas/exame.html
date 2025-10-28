@@ -4,13 +4,10 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title th:text="'Exame • ' + ${prova.titulo}">Exame</title>
-
-  <!-- Reaproveita o mesmo CSS do projeto -->
   <link rel="stylesheet" th:href="@{/css/styles.css}"/>
 </head>
 <body class="body-soft-bg"><!-- mesmo fundo suave do configurar -->
 
-<!-- Navbar igual à da landing/configurar -->
 <nav class="navbar navbar-dark bg-dark">
   <div class="container px-4 px-lg-5">
     <a class="navbar-brand d-flex align-items-center" th:href="@{/}">
@@ -33,7 +30,7 @@
             <div><b>Total de questões:</b> <span th:text="${totalQuestoes}">0</span></div>
           </div>
 
-          <!-- Resumo por área (opcional, mostra se 'areas' existir no model) -->
+          <!-- Resumo por área  -->
           <div th:if="${areas}">
             <h2 class="h6 mb-2">Distribuição por área</h2>
             <div class="list-group mb-3">

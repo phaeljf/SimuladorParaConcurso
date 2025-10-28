@@ -200,9 +200,9 @@ public class ProfQuestoesController {
             return "redirect:/prof/questoes/minhas";
         }
 
-        model.addAttribute("q", opt.get());          // <-- tem que ser "q"
+        model.addAttribute("q", opt.get());
         model.addAttribute("areas", areaRepo.findAll());
-        return "prof/questoes/questoes-form";        // <-- caminho da view
+        return "prof/questoes/questoes-form";
     }
 
     @PostMapping("/{id}/editar")

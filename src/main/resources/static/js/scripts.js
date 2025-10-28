@@ -10,7 +10,7 @@ document.getElementById('offcanvasRight')
         document.getElementById('loginEmail')?.focus();
     });
 
-// Modul de Busca no index
+// Modulo de Busca no index
 // Busca pública no index: lista com botão "Fazer este simulado" por item
 (function () {
     const input = document.getElementById('buscaProva');
@@ -408,8 +408,6 @@ async function carregarBuscaE(page = 0) {
     const res = await fetch(url);
     const data = await res.json();
 
-    // renderize data.content em #resQE, e a paginação em #pagQE (você já tinha isso)
-    // ...seu renderer aqui...
 }
 
 // Listeners (quando o usuário muda os filtros em E):
@@ -453,9 +451,6 @@ async function carregarBuscaC(page = 0) {
     const url = montarUrlBuscaC(page);
     const res = await fetch(url);
     const data = await res.json();
-
-    // renderize data.content em #resQC, e a paginação em #pagQC (você já tinha isso)
-    // ...seu renderer aqui...
 }
 
 ['buscarTextoC','buscarAreaC','buscarMinhasC','buscarPublicasC',

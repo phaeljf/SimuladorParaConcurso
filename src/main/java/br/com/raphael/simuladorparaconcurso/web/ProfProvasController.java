@@ -17,9 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.transaction.annotation.Transactional;
 
-
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Controller
 @RequiredArgsConstructor
@@ -217,6 +215,78 @@ public class ProfProvasController {
         ra.addFlashAttribute("ok", "Prova excluída.");
         return "redirect:/prof/provas";
     }
+
+    @PostMapping("/{id}/link")
+    public String gerarLink(@PathVariable Long id,
+                            @RequestParam(name = "dias", required = false) Integer dias,
+                            jakarta.servlet.http.HttpServletRequest req,
+                            org.springframework.web.servlet.mvc.support.RedirectAttributes ra,
+                            jakarta.servlet.http.HttpSession session) {
+
+        var prof = sess(session);
+        if (prof == null) return "redirect:/prof/login";
+
+        var prova = provaRepo.findById(id)
+                .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(
+                        org.springframework.http.HttpStatus.NOT_FOUND));
+
+        // (opcional) garantir autoria da prova
+        if (prova.getCriadoPor() == null || !prova.getCriadoPor().getId().equals(prof.id())) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.FORBIDDEN);
+        }
+
+        // gera código curto URL-safe (~24 chars)
+        var rnd = new java.security.SecureRandom();
+        byte[] buf = new byte[18];
+        rnd.nextBytes(buf);
+        String code = java.util.Base64.getUrlEncoder().withoutPadding().encodeToString(buf);
+
+        prova.setShareCode(code);
+        prova.setShareEnabled(true);
+        if (dias != null && dias > 0) {
+            prova.setShareExpiresAt(java.time.Instant.now().plusSeconds(dias * 86400L));
+        } else {
+            prova.setShareExpiresAt(null);
+        }
+        provaRepo.save(prova);
+
+        // monta /provas/{id}?code={code}
+        String base = req.getScheme() + "://" + req.getServerName()
+                + ((req.getServerPort() == 80 || req.getServerPort() == 443) ? "" : ":" + req.getServerPort());
+        String url = base + "/provas/" + id + "?code=" + code;
+
+        ra.addFlashAttribute("ok", "Link gerado com sucesso.");
+        ra.addFlashAttribute("linkGerado", url);
+        return "redirect:/prof/provas";
+    }
+
+    @PostMapping("/{id}/link/desativar")
+    public String desativarLink(@PathVariable Long id,
+                                org.springframework.web.servlet.mvc.support.RedirectAttributes ra,
+                                jakarta.servlet.http.HttpSession session) {
+
+        var prof = sess(session);
+        if (prof == null) return "redirect:/prof/login";
+
+        var prova = provaRepo.findById(id)
+                .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(
+                        org.springframework.http.HttpStatus.NOT_FOUND));
+
+        if (prova.getCriadoPor() == null || !prova.getCriadoPor().getId().equals(prof.id())) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.FORBIDDEN);
+        }
+
+        prova.setShareEnabled(false);
+        prova.setShareCode(null);
+        prova.setShareExpiresAt(null);
+        provaRepo.save(prova);
+
+        ra.addFlashAttribute("ok", "Link desativado.");
+        return "redirect:/prof/provas";
+    }
+
 
     private List<Long> sanitizeIds(List<Long> itens) {
         if (itens == null || itens.isEmpty()) return List.of();

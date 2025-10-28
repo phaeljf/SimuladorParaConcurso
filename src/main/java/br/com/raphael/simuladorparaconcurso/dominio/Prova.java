@@ -39,4 +39,13 @@ public class Prova {
 
     @OneToMany(mappedBy = "prova")
     private List<ProvaQuestao> questoes = new ArrayList<>();
+
+    @jakarta.persistence.Column(name = "share_code", unique = true)
+    private String shareCode;
+
+    @jakarta.persistence.Column(name = "share_expires_at")
+    private java.time.Instant shareExpiresAt;
+
+    @jakarta.persistence.Column(name = "share_enabled", nullable = false)
+    private boolean shareEnabled = false;
 }
